@@ -1,0 +1,24 @@
+{
+	"name": "com.dman.grid-game-tools.test-tools",
+	"rootNamespace": "Dman.GridGameTools.TestTools",
+	"references": [
+		"GUID:66fcb33cbe5a67e478baef5042114386",
+		"GUID:15029afac29743d44b9a7aada316089c",
+		"GUID:c8784c0d2f79d1949a28620ea027ab81"
+	],
+	"includePlatforms": [
+		"Editor"
+	],
+	"excludePlatforms": [],
+	"allowUnsafeCode": false,
+	"overrideReferences": true,
+	"precompiledReferences": [
+		"nunit.framework.dll"
+	],
+	"autoReferenced": false,
+	"defineConstraints": [
+		"UNITY_INCLUDE_TESTS"
+	],
+	"versionDefines": [],
+	"noEngineReferences": false
+}

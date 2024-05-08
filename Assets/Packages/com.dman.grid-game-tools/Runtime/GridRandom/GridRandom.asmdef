@@ -1,0 +1,14 @@
+{
+    "name": "com.dman.grid-game-tools.random",
+    "rootNamespace": "Dman.GridGameTools.Random",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

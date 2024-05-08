@@ -1,0 +1,14 @@
+{
+  "name": "com.dman.grid-game-tools",
+  "version": "0.1.0",
+  "displayName": "Grid Game Tools",
+  "description": "A suite of framework-like tools that aim to make implementing and testing\ngrid-based games easier.",
+  "unity": "2020.1",
+  "dependencies": {
+    "com.dman.math": "0.1.0"
+  },
+  "author": {
+    "name": "Dan Miller",
+    "email": "dsmiller95@gmail.com"
+  }
+}
