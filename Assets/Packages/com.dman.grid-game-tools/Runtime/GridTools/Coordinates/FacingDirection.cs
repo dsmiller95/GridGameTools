@@ -30,7 +30,12 @@ public enum FacingDirectionFlags
     Up = 1<<4,
     Down = 1<<5,
     None = 0,
-    All = North | East | South | West | Up | Down
+    All = North | East | South | West | Up | Down,
+    
+    Vertical = Up | Down,
+    Horizontal = North | East | South | West,
+    NorthSouth = North | South,
+    EastWest = East | West,
 }
 
 public static class FacingDirectionExtensions
@@ -118,6 +123,33 @@ public static class FacingDirectionExtensions
         if (absZ > absX)
         {
             return direction.z > 0 ? FacingDirection.North : FacingDirection.South;
+        }
+
+        return null;
+    }
+
+    public static FacingDirectionFlags? ToBestFacingOptionIncludeUp(this Vector3Int direction)
+    {
+        var absX = Math.Abs(direction.x);
+        var absY = Math.Abs(direction.y);
+        var absZ = Math.Abs(direction.z);
+        var max = Mathf.Max(absX, Mathf.Max(absY, absZ));
+        if(max == 0)
+        {
+            return null;
+        }
+        
+        if (absY == max)
+        {
+            return direction.y > 0 ? FacingDirectionFlags.Up : FacingDirectionFlags.Down;
+        }
+        if (absX == max)
+        {
+            return direction.x > 0 ? FacingDirectionFlags.East : FacingDirectionFlags.West;
+        }
+        if (absZ == max)
+        {
+            return direction.z > 0 ? FacingDirectionFlags.North : FacingDirectionFlags.South;
         }
 
         return null;
