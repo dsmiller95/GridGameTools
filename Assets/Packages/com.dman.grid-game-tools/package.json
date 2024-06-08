@@ -5,7 +5,9 @@
   "description": "A suite of framework-like tools that aim to make implementing and testing\ngrid-based games easier.",
   "unity": "2020.1",
   "dependencies": {
-    "com.dman.math": "0.1.0"
+    "com.dman.math": "0.1.0",
+    "com.cysharp.unitask": "2.5.4",
+    "com.dman.utilities": "0.6.1"
   },
   "author": {
     "name": "Dan Miller",
