@@ -54,9 +54,9 @@ namespace GridDomain.Test
             return GetAtSingle<T>(new Vector3Int(x, y, z));
         }
         
-        protected EntityHandle<T> GetSingle<T>() where T: IDungeonEntity
+        protected EntityHandle<T> GetSingle<T>(Func<T, bool> filter = null) where T: IDungeonEntity
         {
-            return World.EntityStore.AllEntitiesOf<T>().Single();
+            return World.EntityStore.AllEntitiesMatching(filter).Single();
         }
         
 

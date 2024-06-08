@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -10,6 +11,19 @@ public static class DungeonWorldEntityExtensions
     {
         return world.AllEntities()
             .Where(id => world.GetEntity(id) is T)
+            .Select(id => new EntityHandle<T>(id));
+    }
+    public static IEnumerable<EntityHandle<T>> AllEntitiesMatching<T> (this IEntityStore world, [CanBeNull] Func<T, bool> filter) where T: IDungeonEntity
+    {
+        return world.AllEntities()
+            .Where(id =>
+            {
+                if(world.GetEntity(id) is T entity)
+                {
+                    return filter?.Invoke(entity) ?? true;
+                }
+                return false;
+            })
             .Select(id => new EntityHandle<T>(id));
     }
     public static IEnumerable<EntityHandle<T>> EntitiesAtOf<T> (this IEntityStore world, Vector3Int position) where T: IDungeonEntity
