@@ -68,6 +68,7 @@ public abstract class BoundToEntity<T> : MonoBehaviour, IBoundToEntity, IRenderU
 
     public async UniTask RespondToUpdate(DungeonUpdateEvent update, CancellationToken cancel)
     {
+        _currentProcessingEvent = update;
         Profiler.BeginSample($"{typeof(T).Name} Binding: Get TakenActions");
         // respond to all commands in parallel, before updating the entity
         var takenActions = update.AppliedCommands
@@ -86,7 +87,11 @@ public abstract class BoundToEntity<T> : MonoBehaviour, IBoundToEntity, IRenderU
             : OnBindingChanged(oldEntity, newEntity, _worldContext, cancel);
         Profiler.EndSample();
         await task;
+        _currentProcessingEvent = null;
     }
+
+    [CanBeNull] private DungeonUpdateEvent _currentProcessingEvent;
+    [CanBeNull] protected DungeonUpdateEvent CurrentProcessingEvent => _currentProcessingEvent;
 
     protected virtual UniTask OnWorldChangedWithNoEntityChange(T currentEntity) => UniTask.CompletedTask;
 
