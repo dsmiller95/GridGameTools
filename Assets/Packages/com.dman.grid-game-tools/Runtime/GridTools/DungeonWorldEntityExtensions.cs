@@ -26,6 +26,19 @@ public static class DungeonWorldEntityExtensions
             })
             .Select(id => new EntityHandle<T>(id));
     }
+    
+    public static IEnumerable<EntityId> AllEntityIdsMatching<T> (this IEntityStore world, [CanBeNull] Func<T, bool> filter)
+    {
+        return world.AllEntities()
+            .Where(id =>
+            {
+                if(world.GetEntity(id) is T entity)
+                {
+                    return filter?.Invoke(entity) ?? true;
+                }
+                return false;
+            });
+    }
     public static IEnumerable<EntityHandle<T>> EntitiesAtOf<T> (this IEntityStore world, Vector3Int position) where T: IDungeonEntity
     {
         return world

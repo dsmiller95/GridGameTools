@@ -58,6 +58,10 @@ namespace GridDomain.Test
         {
             return World.EntityStore.AllEntitiesMatching(filter).Single();
         }
+        protected EntityId GetSingleGeneric<T>(Func<T, bool> filter = null)
+        {
+            return World.EntityStore.AllEntityIdsMatching(filter).Single();
+        }
         
 
         protected void AssertWorldMatches(string expectedMap, params object[] excludedObjects)
