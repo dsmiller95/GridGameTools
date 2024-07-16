@@ -22,6 +22,19 @@ public interface IEntityStore
     
     public IWritableEntities CreateWriter();
 
+    public T GetEntityAssert<T>([NotNull] EntityId id)
+    {
+        var entity = GetEntity(id);
+        if (entity is not T typedEntity) throw new Exception($"Entity {id} is not of type {typeof(T)}");
+        return typedEntity;
+    }
+    public IDungeonEntity GetEntityAssert([NotNull] EntityId id)
+    {
+        var entity = GetEntity(id);
+        if (entity is not { } typedEntity) throw new Exception($"Entity {id} does not exist");
+        return typedEntity;
+    }
+    
     public IEnumerable<EntityId> AllEntities()
     {
         return AllEntitiesWithIds().Select(x => x.id);
@@ -64,6 +77,7 @@ public interface IEntityStore
     {
         return (T) GetEntity(handle.Id);
     }
+    [CanBeNull]
     public EntityHandle<T> TryGetHandle<T>(EntityId id) where T : IDungeonEntity
     {
         var entity = this.GetEntity(id);
