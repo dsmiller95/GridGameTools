@@ -40,12 +40,12 @@ namespace GridDomain.Test
         /// build to a world with certain values set to defaults
         /// </summary>
         /// <returns></returns>
-        public IDungeonWorld BuildToWorld(WorldBuildString characterMap, ulong seed = 0)
+        public IDungeonWorld BuildToWorld(WorldBuildString characterMap, ulong seed = 0, IEnumerable<IWorldComponent> components = null)
         {
             var allEntities = Build(Vector3Int.zero, characterMap);
             var bounds = new DungeonBounds(Vector3Int.zero, characterMap.Size());
             
-            return DungeonWorld.CreateEmpty(bounds, seed)
+            return DungeonWorld.CreateEmpty(bounds, seed, components)
                 .AddEntities(allEntities).world;
         }
 

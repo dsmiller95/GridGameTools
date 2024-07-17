@@ -13,20 +13,22 @@ public record DungeonWorld : IDungeonWorld
     
     public IDungeonBakedPathingData PathingData { get; private set; }
     public ICachingEntityStore EntityStore { get; private set; }
-
-    private DungeonWorld(IDungeonBakedPathingData pathing, ICachingEntityStore entities, ulong seed = 0)
+    public IComponentStore Components { get; private set; }
+    private DungeonWorld(IDungeonBakedPathingData pathing, ICachingEntityStore entities, IComponentStore components, ulong seed = 0)
     {
         Bounds = pathing.Bounds;
         PathingData = pathing;
         EntityStore = entities;
+        Components = components;
         this._seed = seed == 0 ? (ulong)UnityEngine.Random.Range(1, int.MaxValue) : seed;
     }
     
-    public static DungeonWorld CreateEmpty(DungeonBounds bounds, ulong seed = 0)
+    public static DungeonWorld CreateEmpty(DungeonBounds bounds, ulong seed = 0, IEnumerable<IWorldComponent> components = null)
     {
         var pathingData = new DungeonPathingData(bounds, playerPosition: Vector3Int.zero);
         var entityStore = new DungeonEntityStore(new Dictionary<EntityId, IDungeonEntity>());
-        return new DungeonWorld(pathingData, entityStore, seed);
+        var componentStore = new ComponentStore(components);
+        return new DungeonWorld(pathingData, entityStore, componentStore, seed);
     }
     
 

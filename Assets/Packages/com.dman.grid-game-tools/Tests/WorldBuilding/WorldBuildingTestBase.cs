@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dman.Math;
+using JetBrains.Annotations;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -20,6 +22,16 @@ namespace GridDomain.Test
         protected IDungeonWorld World;
         protected WorldBuilder WorldBuilder;
         protected WorldBuildConfig LastUsedBuildConfig;
+
+        [CanBeNull] private IEnumerable<IWorldComponent> components;
+        protected void UseWorldComponents(IEnumerable<IWorldComponent> oneTimeComponents)
+        {
+            components = oneTimeComponents;
+        }
+        protected void UseWorldComponents(params IWorldComponent[] oneTimeComponents)
+        {
+            components = oneTimeComponents;
+        }
         
         protected void CreateWorld(string characterMap, params (string, Func<Vector3Int, IDungeonEntity>)[] otherFactories)
         {
@@ -43,7 +55,9 @@ namespace GridDomain.Test
             //   N
             // W x E
             //   S
-            World = WorldBuilder.BuildToWorld(characterMap, seed);
+            var usedComponents = components;
+            components = null;
+            World = WorldBuilder.BuildToWorld(characterMap, seed, usedComponents);
         }
         protected EntityHandle<T> GetAtSingle<T>(Vector3Int position) where T: IDungeonEntity
         {

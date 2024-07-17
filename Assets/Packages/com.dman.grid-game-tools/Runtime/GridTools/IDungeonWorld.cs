@@ -14,7 +14,11 @@ public interface IDungeonWorld: IDisposable
 
     public (IDungeonWorld newWorld, IEnumerable<IDungeonCommand> executedCommands)
         ApplyCommandsWithModifiedCommands(IEnumerable<IDungeonCommand> commands);
+    public IDungeonBakedPathingData PathingData { get; }
 
+    public ICachingEntityStore EntityStore { get; }
+    public IComponentStore Components { get; }
+    
     public (IDungeonWorld newWorld, IEnumerable<IDungeonCommand> executedCommands) ApplyCommandsWithModifiedCommands(
         IEnumerable<IDungeonCommand> commands,
         bool andDispose)
@@ -31,8 +35,4 @@ public interface IDungeonWorld: IDisposable
     {
         return ApplyCommandsWithModifiedCommands(commands, andDispose).newWorld;
     }
-    
-    public IDungeonBakedPathingData PathingData { get; }
-
-    public ICachingEntityStore EntityStore { get; }
 }
