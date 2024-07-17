@@ -95,6 +95,16 @@ public interface IDungeonPathingData: IDisposable
         var blockedFaces = GetBlockedFaces(nextTile, layer);
         return blockedFaces.HasFlag(backwardsDirection);
     }
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="startAt">The voxel to move from</param>
+    /// <param name="endAt">the voxel to move into</param>
+    /// <param name="externalLayer">the layers which may block movement, inside the target voxel</param>
+    /// <param name="internalLayer">the layers which may block movement, inside the source voxel</param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public bool IsBlockedBetween(
         Vector3Int startAt,
         Vector3Int endAt,
