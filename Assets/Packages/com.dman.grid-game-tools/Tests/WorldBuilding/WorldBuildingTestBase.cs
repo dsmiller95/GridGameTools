@@ -12,6 +12,11 @@ namespace GridDomain.Test
     {
         public object GetIdentifyingKey(IDungeonEntity entity);
     }
+
+    public interface IWorldComponentFactory
+    {
+        public IEnumerable<IWorldComponent> GetComponents();
+    }
     
     public abstract class WorldBuildingTestBase
     {
@@ -31,6 +36,10 @@ namespace GridDomain.Test
         protected void UseWorldComponents(params IWorldComponent[] oneTimeComponents)
         {
             components = oneTimeComponents;
+        }
+        protected void UseWorldComponents(params IWorldComponentFactory[] componentFactories)
+        {
+            components = componentFactories.SelectMany(x => x.GetComponents()).ToList();
         }
         
         protected void CreateWorld(string characterMap, params (string, Func<Vector3Int, IDungeonEntity>)[] otherFactories)
