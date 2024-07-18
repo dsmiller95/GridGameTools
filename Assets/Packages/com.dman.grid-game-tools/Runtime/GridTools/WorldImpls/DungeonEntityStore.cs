@@ -174,7 +174,7 @@ public record DungeonEntityStore : ICachingEntityStore
         private DictionaryBackedLookup<Vector3Int, EntityId> EnsureCopiedStaticEntities()
         {
             if(newStaticEntities != null) return newStaticEntities;
-            Debug.LogWarning("Copying static entities. Should only occur once or twice.");
+            Debug.Log("Copying static entities. Should only occur once or twice.");
             newStaticEntities = new DictionaryBackedLookup<Vector3Int, EntityId>(underlying._staticEntitiesInTiles);
             return newStaticEntities;
         }
