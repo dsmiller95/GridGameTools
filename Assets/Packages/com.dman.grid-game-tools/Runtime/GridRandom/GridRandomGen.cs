@@ -4,6 +4,11 @@ using System;
 
 namespace GridRandom
 {
+    public struct TestGarbage
+    {
+        
+    }
+    
     /// <summary>
     /// A simple implementation of a 64-bit deterministic pseudorandom number generator using linear-feedback shift register (LFSR)
     /// </summary>
