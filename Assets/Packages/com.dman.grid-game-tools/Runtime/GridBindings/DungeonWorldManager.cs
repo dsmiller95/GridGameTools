@@ -44,13 +44,7 @@ public class DungeonWorldManager : MonoBehaviour,
     
     [SerializeField] private InitialDungeonState initialState = new InitialDungeonState();
     [SerializeField] private Transform worldParent;
-    [SerializeField] private ScriptableObject animationTickEvent;
     [SerializeField] public UnityEvent onAllRenderUpdatesComplete;
-
-    /// <summary>
-    /// Player position used when there is no world loader, or the world loader has not placed a player
-    /// </summary>
-    [SerializeField] public Vector3Int defaultPlayerPosition;
     
     private List<IRenderUpdate> _updateListeners = new List<IRenderUpdate>();
     private AsyncFnOnceCell _updateCell;
