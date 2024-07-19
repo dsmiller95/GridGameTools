@@ -9,4 +9,5 @@ public interface ICommandDungeon
     public IDungeonPathingData CurrentPathingState { get; }
     public IEntityStore CurrentEntityState { get; }
     public IDungeonWorld PreviousWorldState { get; }
+    public IComponentStore WritableComponentStore { get; }
 }

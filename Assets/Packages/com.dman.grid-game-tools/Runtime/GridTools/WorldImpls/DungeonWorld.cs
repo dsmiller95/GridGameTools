@@ -42,13 +42,14 @@ public record DungeonWorld : IDungeonWorld
         Profiler.BeginSample("WriteWorldInternal.createWriters");
         var writer = EntityStore.CreateWriter();
         using var pathingWriter = PathingData.CreateWriter();
-        var commandableWorld = new WritableDungeonWorld(this, writer, pathingWriter);
+        var componentWriter = this.Components.CreateWriter();
+        var commandableWorld = new WritableDungeonWorld(this, writer, pathingWriter, componentWriter);
         Profiler.EndSample();
         Profiler.BeginSample("WriteWorldInternal.writeAction");
         writeAction(commandableWorld);
         Profiler.EndSample();
         Profiler.BeginSample("WriteWorldInternal.applyWriteModifications");
-        var result = ApplyWriteModifications(writer, pathingWriter);
+        var result = ApplyWriteModifications(writer, pathingWriter, componentWriter);
         Profiler.EndSample();
         Profiler.EndSample();
         return result;
@@ -59,14 +60,17 @@ public record DungeonWorld : IDungeonWorld
     /// </summary>
     /// <param name="writtenEntities"></param>
     /// <param name="writtenPathing"></param>
+    /// <param name="writtenComponents"></param>
     /// <returns></returns>
     private IDungeonWorld ApplyWriteModifications(
         IWritableEntities writtenEntities,
-        IDungeonPathingDataWriter writtenPathing)
+        IDungeonPathingDataWriter writtenPathing,
+        IWritingComponentStore writtenComponents)
     {
         Profiler.BeginSample("ApplyWriteModifications_WithPathing");
         var newStore = writtenEntities.Build();
         var newPathingData = writtenPathing.BuildAndDispose();
+        var newComponents = writtenComponents.BakeImmutable();
         
         #if DUNGEON_SAFETY_CHECKS // only do this check in editor, it is very expensive.
         var newPathingDataChecksum = PathingData.ApplyWriteRecord(newStore, writtenEntities.WriteOperations());
@@ -81,7 +85,8 @@ public record DungeonWorld : IDungeonWorld
         return this with
         {
             EntityStore = newStore,
-            PathingData = newPathingData
+            PathingData = newPathingData,
+            Components = newComponents
         };
     }
     
@@ -148,19 +153,23 @@ public record DungeonWorld : IDungeonWorld
     {
         private readonly DungeonWorld world;
         private IWritableEntities writableEntities { get; set; }
+        private readonly IWritingComponentStore writingStore;
         public IEntityStore CurrentEntityState => writableEntities;
         private IDungeonPathingDataWriter writablePathingData;
         public IDungeonPathingData CurrentPathingState => writablePathingData;
         public IDungeonWorld PreviousWorldState => world;
+        public IComponentStore WritableComponentStore => writingStore;
 
         public WritableDungeonWorld(
             DungeonWorld world,
             IWritableEntities entityWriter,
-            IDungeonPathingDataWriter pathingDataWriter)
+            IDungeonPathingDataWriter pathingDataWriter,
+            IWritingComponentStore writingStore)
         {
             this.world = world;
             writableEntities = entityWriter;
             writablePathingData = pathingDataWriter;
+            this.writingStore = writingStore;
         }
 
         public IDungeonEntity GetEntity(EntityId id)

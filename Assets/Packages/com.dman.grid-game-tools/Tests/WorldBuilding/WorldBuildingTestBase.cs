@@ -109,7 +109,7 @@ namespace GridDomain.Test
 
             AssertEqIgnoringLineSep(expectedMap, worldString.OriginalCharacterMap);
         }
-        private void AssertEqIgnoringLineSep(string expected, string actual)
+        protected static void AssertEqIgnoringLineSep(string expected, string actual)
         {
             var trimmedExpected = expected.Trim().Replace("\r\n", "\n");
             var trimmedActual = actual.Trim().Replace("\r\n", "\n");
@@ -124,15 +124,9 @@ namespace GridDomain.Test
             char defaultChar = '-',
             params (object, char)[] identifiersToChars)
         {
-            var bounds = World.Bounds;
-            var actualCharsXYZ = new XyzGrid<char>(bounds.Size);
-
             var charsByIdentifier = identifiersToChars.ToDictionary(x => x.Item1, x => x.Item2);
-            
-            foreach (var arrayPoint in VectorUtilities.IterateAllIn(bounds.Size))
+            return ToWorldStringByQuery(buildOpts, World.Bounds, (worldPoint) =>
             {
-                var worldPoint = arrayPoint + bounds.Min;
-                
                 var entities = World.EntityStore.GetEntityObjectsAt(worldPoint);
                 var actualCharsAtPoint = entities
                     .Select(x =>
@@ -146,15 +140,29 @@ namespace GridDomain.Test
                         return (char?)null;
                     }).Where(x => x.HasValue).Select(x => x.Value).ToArray();
 
-                char result = actualCharsAtPoint.Length switch
+                return actualCharsAtPoint.Length switch
                 {
                     0 => defaultChar,
                     > 1 => throw new Exception(
                         $"Multiple mapped entities on tile {worldPoint}. entities: {string.Join(", ", actualCharsAtPoint)}"),
                     _ => actualCharsAtPoint.Single()
                 };
+            });
+        }
+        
+        protected static WorldBuildString ToWorldStringByQuery(
+            WorldBuildConfig buildOpts,
+            DungeonBounds bounds,
+            Func<Vector3Int, char> coordToCharMap)
+        {
+            var actualCharsXYZ = new XyzGrid<char>(bounds.Size);
+            
+            foreach (var arrayPoint in VectorUtilities.IterateAllIn(bounds.Size))
+            {
+                var worldPoint = arrayPoint + bounds.Min;
+                var chr = coordToCharMap(worldPoint);
 
-                actualCharsXYZ[arrayPoint] = result;
+                actualCharsXYZ[arrayPoint] = chr;
             }
 
             return WorldBuildString.BuildStringFromXYZ(actualCharsXYZ, buildOpts);
