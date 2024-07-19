@@ -19,6 +19,12 @@ public interface IDungeonWorld: IDisposable
     public ICachingEntityStore EntityStore { get; }
     public IComponentStore Components { get; }
     
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="commands"></param>
+    /// <param name="andDispose">When true, will dispose this world after the next world is created</param>
+    /// <returns></returns>
     public (IDungeonWorld newWorld, IEnumerable<IDungeonCommand> executedCommands) ApplyCommandsWithModifiedCommands(
         IEnumerable<IDungeonCommand> commands,
         bool andDispose)
@@ -31,6 +37,12 @@ public interface IDungeonWorld: IDisposable
         return result;
     }
     
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="commands"></param>
+    /// <param name="andDispose">When true, will dispose this world after the next world is created</param>
+    /// <returns></returns>
     public IDungeonWorld ApplyCommands(IEnumerable<IDungeonCommand> commands, bool andDispose = false)
     {
         return ApplyCommandsWithModifiedCommands(commands, andDispose).newWorld;
