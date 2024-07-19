@@ -229,6 +229,5 @@ namespace GridDomain.Test
 
             return new WorldBuildString(build.ToString().Trim(), opts);
         }
-        
     }
 }

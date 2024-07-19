@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Dman.Math;
+using UnityEngine;
 
 namespace GridDomain.Test
 {
@@ -68,6 +71,21 @@ namespace GridDomain.Test
             var deepestArr = _grid.ElementAtOrDefault(index.Item1)?.ElementAtOrDefault(index.Item2);
             if(deepestArr == null) return default;
             return deepestArr.ElementAtOrDefault(index.Item3);
+        }
+        
+        public IEnumerable<TransformedCoordinate> FindMatch(T exactMatch)
+        {
+            var size = GetSize();
+            var vec = new Vector3Int(size.Item1, size.Item2, size.Item3);
+            foreach (var xyz in VectorUtilities.IterateAllIn(vec))
+            {
+                var coord = new TransformedCoordinate(xyz.x, xyz.y, xyz.z);
+                var point = this[coord];
+                if (Equals(point, exactMatch))
+                {
+                    yield return coord;
+                }
+            }
         }
     }
     

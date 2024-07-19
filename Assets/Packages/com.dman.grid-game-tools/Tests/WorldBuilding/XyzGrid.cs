@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Dman.Math;
 using UnityEngine;
 
@@ -39,6 +40,19 @@ namespace GridDomain.Test
             var sizeZ = _grid.GetLength(2);
 
             return new Vector3Int(sizeX, sizeY, sizeZ);
+        }
+
+        public IEnumerable<Vector3Int> FindMatch(T exactMatch)
+        {
+            var size = GetSize();
+            foreach (var xyz in VectorUtilities.IterateAllIn(size))
+            {
+                var point = this[xyz];
+                if (Equals(point, exactMatch))
+                {
+                    yield return xyz;
+                }
+            }
         }
     }
 
