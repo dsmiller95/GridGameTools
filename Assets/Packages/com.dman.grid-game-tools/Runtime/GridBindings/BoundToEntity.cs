@@ -34,8 +34,9 @@ public abstract class BoundToEntity<T> : MonoBehaviour, IBoundToEntity, IRenderU
         }
         Bind(handle, updater, worldContext);
         return true;
-    } 
-    public void Bind(EntityHandle<T> entity, IDungeonUpdater updater, IDungeonToWorldContext worldContext)
+    }
+
+    private void Bind(EntityHandle<T> entity, IDungeonUpdater updater, IDungeonToWorldContext worldContext)
     {
         if (_isBound)
         {

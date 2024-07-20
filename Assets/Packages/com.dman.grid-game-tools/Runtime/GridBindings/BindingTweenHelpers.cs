@@ -65,7 +65,7 @@ public static class BindingHelpers
         transform.position = context.GetCenter(endPos);
     }
 
-    private static async UniTask MoveTo(
+    public static async UniTask MoveTo(
         Transform transform,
         Vector3 endPos,
         float seconds,
