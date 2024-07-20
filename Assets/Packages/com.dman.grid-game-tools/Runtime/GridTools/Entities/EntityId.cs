@@ -1,7 +1,7 @@
 public record EntityId
 {
     private readonly int _value;
-    public static EntityId Invalid => new EntityId(-1);
+    public static readonly EntityId Invalid = new EntityId(-1);
     private static int lastId = 0;
     
     private EntityId(int value)

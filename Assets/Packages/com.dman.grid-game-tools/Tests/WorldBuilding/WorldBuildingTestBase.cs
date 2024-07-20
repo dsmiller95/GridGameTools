@@ -5,6 +5,7 @@ using Dman.Math;
 using JetBrains.Annotations;
 using NUnit.Framework;
 using UnityEngine;
+using AssertionException = UnityEngine.Assertions.AssertionException;
 
 namespace GridDomain.Test
 {
@@ -81,9 +82,31 @@ namespace GridDomain.Test
         {
             return World.EntityStore.AllEntitiesMatching(filter).Single();
         }
-        protected EntityId GetSingleGeneric<T>(Func<T, bool> filter = null)
+        
+        protected EntityId GetSingleGeneric<T>(Func<T, bool> filter = null) => AssertSingleGeneric(filter);
+
+        protected EntityId AssertSingleGeneric<T>(Func<T, bool> filter = null, string ifFailMessage = null)
         {
-            return World.EntityStore.AllEntityIdsMatching(filter).Single();
+            var matched = World.EntityStore.AllEntityIdsMatching(filter).ToList();
+            switch (matched.Count)
+            {
+                case 0:
+                    throw new AssertionException("Expected exactly 1 entity, found 0", ifFailMessage);
+                case > 1:
+                    throw new AssertionException($"Expected exactly 1 entity, found {matched.Count}", ifFailMessage);
+            }
+
+            return matched.Single();
+        }
+        
+        protected void AssertNone<T>(Func<T, bool> filter = null, string ifFailMessage = null)
+        {
+            var matchedCount = World.EntityStore.AllEntityIdsMatching(filter).Count();
+            switch (matchedCount)
+            {
+                case >= 1:
+                    throw new AssertionException($"Expected exactly 0 entities, found {matchedCount}", ifFailMessage);
+            }
         }
         
 
