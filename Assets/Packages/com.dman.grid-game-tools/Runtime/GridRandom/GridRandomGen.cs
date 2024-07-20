@@ -1,6 +1,7 @@
 //#define FORCE_NON_DETERMINISTIC
 
 using System;
+using System.Diagnostics.Contracts;
 
 namespace GridRandom
 {
@@ -78,6 +79,7 @@ namespace GridRandom
             return OverrideState;
         }
 
+        [Pure]
         public GridRandomGen Fork(ulong forkSeed = 0)
         {
             if (forkSeed == 0)
