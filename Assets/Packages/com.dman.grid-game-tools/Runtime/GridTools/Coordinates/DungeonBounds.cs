@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dman.Math;
+using GridRandom;
 using UnityEngine;
 
 public readonly struct DungeonBounds
@@ -59,5 +60,15 @@ public static class DungeonBoundsExtensions
     public static IEnumerable<Vector3Int> AllPoints(this DungeonBounds bounds)
     {
         return VectorUtilities.IterateAllIn(bounds.Min, bounds.Max);
+    }
+
+    public static Vector3Int PickRandomPont(this DungeonBounds bounds, ref GridRandomGen rng)
+    {
+        var size = bounds.Size;
+        return new Vector3Int(
+            rng.Next(size.x),
+            rng.Next(size.y),
+            rng.Next(size.z)
+        ) + bounds.Min;
     }
 }

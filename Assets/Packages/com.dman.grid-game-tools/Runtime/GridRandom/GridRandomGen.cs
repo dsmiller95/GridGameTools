@@ -64,6 +64,15 @@ namespace GridRandom
             return NextInt() % maxValue;
         }
         
+        /// <summary>
+        /// returns a value between 0 and 1
+        /// </summary>
+        /// <returns></returns>
+        public float NextFloat()
+        {
+            return NextState() * (1.0f / ulong.MaxValue);
+        }
+        
         public int NextInt()
         {
             AdvanceInternalState();
