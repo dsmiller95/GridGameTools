@@ -19,6 +19,9 @@ public abstract class BoundToEntity<T> : MonoBehaviour, IBoundToEntity, IRenderU
 
     protected abstract bool UnbindAfterInstantiate { get; }
     
+    [CanBeNull] private DungeonUpdateEvent _currentProcessingEvent;
+    [CanBeNull] protected DungeonUpdateEvent CurrentProcessingEvent => _currentProcessingEvent;
+
     public IDungeonEntity GetEntityObjectGuessGeneric(IDungeonToWorldContext context) => GetEntityObjectGuess(context);
     
     [CanBeNull] protected abstract T GetEntityObjectGuess(IDungeonToWorldContext context);
@@ -43,6 +46,7 @@ public abstract class BoundToEntity<T> : MonoBehaviour, IBoundToEntity, IRenderU
             Debug.LogError($"Can only bind once, {this.name} is already bound");
             return;
         }
+        _isBound = true;
 
         _worldContext = worldContext;
         _updater = updater;
@@ -58,6 +62,7 @@ public abstract class BoundToEntity<T> : MonoBehaviour, IBoundToEntity, IRenderU
     {
         if (!_isBound) return;
         this._updater.RemoveUpdateListener(this);
+        OnUnbind();
     }
 
     /// <summary>
@@ -65,6 +70,11 @@ public abstract class BoundToEntity<T> : MonoBehaviour, IBoundToEntity, IRenderU
     /// </summary>
     protected virtual void OnBind()
     {
+    }
+
+    protected virtual void OnUnbind()
+    {
+        
     }
 
     public async UniTask RespondToUpdate(DungeonUpdateEvent update, CancellationToken cancel)
@@ -90,9 +100,6 @@ public abstract class BoundToEntity<T> : MonoBehaviour, IBoundToEntity, IRenderU
         await task;
         _currentProcessingEvent = null;
     }
-
-    [CanBeNull] private DungeonUpdateEvent _currentProcessingEvent;
-    [CanBeNull] protected DungeonUpdateEvent CurrentProcessingEvent => _currentProcessingEvent;
 
     protected virtual UniTask OnWorldChangedWithNoEntityChange(T currentEntity) => UniTask.CompletedTask;
 
