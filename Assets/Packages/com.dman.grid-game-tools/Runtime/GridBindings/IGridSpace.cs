@@ -19,4 +19,18 @@ public static class GridSpaceExtensions
         var facing = (FacingDirection) (Mathf.RoundToInt(rot.eulerAngles.y / 90) % 4);
         return new DungeonCoordinate(coord, facing);
     }
+
+    public static Bounds GetBoundsAround(this IGridSpace grid, DungeonBounds bounds)
+    {
+        var min = bounds.Min;
+        var minnest = bounds.Min - Vector3Int.one;
+        var minBound = (grid.GetCenter(min) + grid.GetCenter(minnest)) / 2;
+        var max = bounds.Max;
+        var maxxest = bounds.Max + Vector3Int.one;
+        var maxBound = (grid.GetCenter(max) + grid.GetCenter(maxxest)) / 2;
+
+        var center = (minBound + maxBound) / 2;
+        var size = maxBound - minBound;
+        return new Bounds(center, size);
+    }
 }
