@@ -57,6 +57,12 @@ public interface IEntityStore
             .Where(e => e.entity is T)
             .Select(e => e.id);
     }
+    public IEnumerable<T> GetEntityObjectsOfType<T>() where T : class
+    {
+        return AllEntitiesWithIds()
+            .Select(e => e.entity as T)
+            .Where(e => e != null);
+    }
 
     public IEnumerable<IDungeonEntity> GetEntityObjectsAt(Vector3Int position)
     {
