@@ -61,7 +61,7 @@ namespace GridRandom
         /// <returns></returns>
         public int Next(int maxValue)
         {
-            return NextInt() % maxValue;
+            return (int)(NextState() % (ulong)maxValue);
         }
         
         /// <summary>
