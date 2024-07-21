@@ -53,7 +53,7 @@ public class DungeonWorldManager : MonoBehaviour,
     
     private void Awake()
     {
-        SpawningRng = new GridRandomGen(initialState.LongSeedOrRngIfDefault);
+        SpawningRng = new GridRandomGen(initialState.SeedOrRngIfDefault);
         _updateCell = new AsyncFnOnceCell(gameObject);
     }
 

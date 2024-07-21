@@ -9,8 +9,8 @@ public record InitialDungeonState
     [Tooltip("Leave at 0 for random seed.")]
     public int seed;
 
-    private ulong _generatedSeed = 0;
-    public ulong LongSeedOrRngIfDefault
+    private uint _generatedSeed = 0;
+    public uint SeedOrRngIfDefault
     {
         get
         {
@@ -27,7 +27,7 @@ public record InitialDungeonState
 
             unchecked
             {
-                _generatedSeed = (ulong)seedToUse;
+                _generatedSeed = (uint)seedToUse;
             }
             return _generatedSeed;
         }

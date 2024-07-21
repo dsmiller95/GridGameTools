@@ -66,9 +66,9 @@ public static class DungeonBoundsExtensions
     {
         var size = bounds.Size;
         return new Vector3Int(
-            rng.Next(size.x),
-            rng.Next(size.y),
-            rng.Next(size.z)
+            rng.NextInt(size.x),
+            rng.NextInt(size.y),
+            rng.NextInt(size.z)
         ) + bounds.Min;
     }
 }

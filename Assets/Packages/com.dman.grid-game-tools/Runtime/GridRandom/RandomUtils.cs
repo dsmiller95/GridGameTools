@@ -2,9 +2,9 @@ namespace GridRandom
 {
     public static class RandomUtils
     {
-        public static ulong ToSeed(this string seed)
+        public static uint ToSeed(this string seed)
         {
-            return (ulong)seed.GetHashCode();
+            return (uint)seed.GetHashCode();
         }
     }
 }

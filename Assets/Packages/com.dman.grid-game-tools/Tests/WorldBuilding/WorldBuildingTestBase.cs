@@ -49,7 +49,7 @@ namespace GridDomain.Test
         {
             CreateWorld(characterMap, seed: 0, otherFactories);
         }
-        protected void CreateWorld(string characterMap, ulong seed = 0, params (string, Func<Vector3Int, IDungeonEntity>)[] otherFactories)
+        protected void CreateWorld(string characterMap, uint seed = 0, params (string, Func<Vector3Int, IDungeonEntity>)[] otherFactories)
         {
             CreateWorld(
                 (characterMap, DefaultBuildConfig),
@@ -58,7 +58,7 @@ namespace GridDomain.Test
             );
         }
 
-        protected void CreateWorld(WorldBuildString characterMap, ulong seed = 0, params (string, Func<Vector3Int, IDungeonEntity>)[] otherFactories)
+        protected void CreateWorld(WorldBuildString characterMap, uint seed = 0, params (string, Func<Vector3Int, IDungeonEntity>)[] otherFactories)
         {
             LastUsedBuildConfig = characterMap.BuildConfig;
             var defaultStr = '-'.ToString();
@@ -204,7 +204,7 @@ namespace GridDomain.Test
         /// </summary>
         /// <param name="caller"></param>
         /// <returns></returns>
-        protected ulong GetSeed([CallerMemberName] string caller = null)
+        protected uint GetSeed([CallerMemberName] string caller = null)
         {
             return caller.ToSeed();
         }

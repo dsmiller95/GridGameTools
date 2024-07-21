@@ -19,27 +19,28 @@ namespace GridRandom
     /// </remarks>
     public struct GridRandomGen
     {
-        private ulong _state;
+        private uint _state;
         
         // force non-deterministic flag is used when we need to see if something depends on the rng being deterministic
         // such as automated tests
-        private ulong OverrideState =>
+        private uint OverrideState =>
         #if FORCE_NON_DETERMINISTIC
-         (ulong)UnityEngine.Random.Range(1, int.MaxValue);
+         (uint)UnityEngine.Random.Range(1, int.MaxValue);
         #else 
          _state;
         #endif
         
-        public GridRandomGen(ulong seed)
+        public GridRandomGen(uint seed)
         {
             _state = seed;
+            AdvanceInternalState();
         }
         public GridRandomGen(int seed)
         {
             if(seed == 0) throw new ArgumentException("Seed cannot be 0");
             unchecked
             {
-                _state = (ulong)seed;
+                _state = (uint)seed;
             }
             this.AdvanceInternalState();
         }
@@ -49,7 +50,7 @@ namespace GridRandom
             var newSeed = a.NextState() ^ b.NextState();
             return new GridRandomGen(newSeed);
         }
-        public static GridRandomGen Combine(GridRandomGen a, ulong b)
+        public static GridRandomGen Combine(GridRandomGen a, uint b)
         {
             return Combine(a, new GridRandomGen(b));
         }
@@ -59,9 +60,24 @@ namespace GridRandom
         /// </summary>
         /// <param name="maxValue">exclusive upper bound</param>
         /// <returns></returns>
-        public int Next(int maxValue)
+        public int NextInt(int maxValue)
         {
-            return (int)(NextState() % (ulong)maxValue);
+            uint state = NextState();
+            var multiplicand = (ulong)maxValue;
+            ulong product = state * multiplicand;
+            ulong shifted = product >> 32;
+            return (int)shifted;
+        }
+        
+        public int NextInt(int min, int max)
+        {
+            if(max < min) throw new ArgumentException("max must be greater than or equal to min");
+            uint range = (uint)(max - min);
+            
+            var state = NextState();
+            var multiplicand = (ulong)range >> 32;
+            var product = state * multiplicand;
+            return (int)product + min;
         }
         
         /// <summary>
@@ -70,26 +86,32 @@ namespace GridRandom
         /// <returns></returns>
         public float NextFloat()
         {
-            return NextState() * (1.0f / ulong.MaxValue);
+            var res = NextUint() * (1.0f / uint.MaxValue);
+            return res;
         }
         
         public int NextInt()
         {
-            AdvanceInternalState();
+            var val = NextUint();
             unchecked
             {
-                return (int)(OverrideState);
+                return (int)val;
             }
         }
 
-        public ulong NextState()
+        public uint NextUint()
+        {
+            return NextState();
+        }
+        
+        public uint NextState()
         {
             AdvanceInternalState();
             return OverrideState;
         }
 
         [Pure]
-        public GridRandomGen Fork(ulong forkSeed = 0)
+        public GridRandomGen Fork(uint forkSeed = 0)
         {
             if (forkSeed == 0)
             {
@@ -106,9 +128,9 @@ namespace GridRandom
         
         private void AdvanceInternalState()
         {
-            _state ^= _state >> 13;
-            _state ^= _state << 7;
+            _state ^= _state << 13;
             _state ^= _state >> 17;
+            _state ^= _state <<  5;
         }
     }
 }

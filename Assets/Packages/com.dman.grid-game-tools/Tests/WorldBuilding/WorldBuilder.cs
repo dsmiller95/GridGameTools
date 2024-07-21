@@ -7,7 +7,7 @@ namespace GridDomain.Test
 {
     public interface IDefaultFactoriesFactory
     {
-        public Dictionary<string, Func<Vector3Int, IDungeonEntity>> GetDefaultFactories(ulong seed);
+        public Dictionary<string, Func<Vector3Int, IDungeonEntity>> GetDefaultFactories(uint seed);
     }
 
     public class WorldBuilder
@@ -15,14 +15,14 @@ namespace GridDomain.Test
         public Dictionary<string, Func<Vector3Int, IDungeonEntity>> EntityFactories { get; }
         private readonly string _defaultChar;
 
-        private WorldBuilder(IDefaultFactoriesFactory defaultEntities, string defaultChar = "-", ulong seed = 0)
+        private WorldBuilder(IDefaultFactoriesFactory defaultEntities, string defaultChar = "-", uint seed = 0)
         {
-            if(seed == 0) seed = (ulong)UnityEngine.Random.Range(1, int.MaxValue);
+            if(seed == 0) seed = (uint)UnityEngine.Random.Range(1, int.MaxValue);
             EntityFactories = defaultEntities.GetDefaultFactories(seed);
             _defaultChar = defaultChar;
         }
 
-        public static WorldBuilder Create(IDefaultFactoriesFactory defaultEntities, string defaultChar = "-", ulong seed = 0, IEnumerable<(string, Func<Vector3Int, IDungeonEntity>)> otherFactories = null)
+        public static WorldBuilder Create(IDefaultFactoriesFactory defaultEntities, string defaultChar = "-", uint seed = 0, IEnumerable<(string, Func<Vector3Int, IDungeonEntity>)> otherFactories = null)
         {
             var baseBuilder =  new WorldBuilder(defaultEntities, defaultChar, seed);
 
