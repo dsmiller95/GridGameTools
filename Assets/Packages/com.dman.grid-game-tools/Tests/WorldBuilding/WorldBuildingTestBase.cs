@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Dman.Math;
+using GridRandom;
 using JetBrains.Annotations;
 using NUnit.Framework;
 using UnityEngine;
@@ -195,6 +197,16 @@ namespace GridDomain.Test
         private object GetIdentifyingKey(IDungeonEntity entityToKey)
         {
             return EntityComparator.GetIdentifyingKey(entityToKey);
+        }
+
+        /// <summary>
+        /// Gets a seed that is unique to the calling method.
+        /// </summary>
+        /// <param name="caller"></param>
+        /// <returns></returns>
+        protected ulong GetSeed([CallerMemberName] string caller = null)
+        {
+            return caller.ToSeed();
         }
     }
 }
