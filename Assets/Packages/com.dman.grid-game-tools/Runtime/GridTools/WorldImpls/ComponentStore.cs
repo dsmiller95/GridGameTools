@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 
 
 public interface IComponentStore
 {
     public IWritingComponentStore CreateWriter();
-    public T TryGet<T>() where T: class;
+    [CanBeNull] public T TryGet<T>() where T: class;
     public T AssertGet<T>() where T : class
     {
         var component = TryGet<T>();
