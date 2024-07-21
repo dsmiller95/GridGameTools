@@ -60,7 +60,9 @@ public static class DungeonCoordinateExtensions
 {
     public static GridRandomGen Fork(this GridRandomGen randGen, DungeonCoordinate coordinate)
     {
-        var seededToPosition = new GridRandomGen(coordinate.Position.GetHashCode());
+        var hashCode = coordinate.Position.GetHashCode();
+        if (hashCode == 0) hashCode = 971273713;
+        var seededToPosition = new GridRandomGen(hashCode);
         return GridRandomGen.Combine(randGen, seededToPosition);
     }
 }
