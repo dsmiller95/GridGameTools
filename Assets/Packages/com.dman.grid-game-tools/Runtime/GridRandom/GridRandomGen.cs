@@ -113,17 +113,19 @@ namespace GridRandom
         [Pure]
         public GridRandomGen Fork(uint forkSeed = 0)
         {
+            GridRandomGen copy;
             if (forkSeed == 0)
             {
-                var copy = new GridRandomGen(this._state);
-                copy.AdvanceInternalState();
-                return copy;
+                copy = new GridRandomGen(this._state);
             }
             else
             {
-                var copy = Combine(this, forkSeed);
-                return copy;
+                copy = Combine(this, forkSeed);
             }
+            copy.AdvanceInternalState();
+            copy.AdvanceInternalState();
+            copy.AdvanceInternalState();
+            return copy;
         }
         
         private void AdvanceInternalState()
