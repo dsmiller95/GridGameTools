@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class SimpleChangeCommand<T> : IDungeonCommand
 {
+    private readonly LogType? _logIfNotOfType;
     public EntityId ActionTaker { get; }
-    public SimpleChangeCommand(EntityId actionTaker, Func<T, IDungeonEntity> lambda)
+    public SimpleChangeCommand(EntityId actionTaker, Func<T, IDungeonEntity> lambda, LogType? logIfNotOfType = LogType.Warning)
     {
+        _logIfNotOfType = logIfNotOfType;
         ActionTaker = actionTaker;
         Lambda = lambda;
     }
@@ -17,7 +19,10 @@ public class SimpleChangeCommand<T> : IDungeonCommand
     {
         if (world.GetEntity(ActionTaker) is not T ofType)
         {
-            Debug.LogWarning($"Entity {ActionTaker} is not of type {typeof(T)}");
+            if (_logIfNotOfType != null)
+            {
+                Debug.unityLogger.Log(_logIfNotOfType.Value,$"Entity {ActionTaker} is not of type {typeof(T)}");
+            }
             return Array.Empty<IDungeonCommand>();
         }
         
