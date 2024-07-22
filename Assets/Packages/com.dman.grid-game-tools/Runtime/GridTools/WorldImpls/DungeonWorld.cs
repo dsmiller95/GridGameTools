@@ -107,6 +107,7 @@ public record DungeonWorld : IDungeonWorld
     {
         bool ShouldRejectCommand(IDungeonCommand command)
         {
+            if (command == null) return true;
             if (command.ActionTaker == null) return false;
             if (commandable.GetEntity(command.ActionTaker) is not IRejectOwnCommands rejector) return false;
             
