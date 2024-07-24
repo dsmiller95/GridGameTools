@@ -23,3 +23,10 @@ public record EntityId
         return "id:" + _value;
     }
 }
+public static class EntityIdExtensions
+{
+    public static bool IsValid(this EntityId id)
+    {
+        return id != null && id != EntityId.Invalid;
+    }
+}
