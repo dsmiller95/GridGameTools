@@ -79,6 +79,11 @@ namespace GridDomain.Test
         {
             return GetAtSingle<T>(new Vector3Int(x, y, z));
         }
+
+        protected EntityId GetAtSingle(Vector3Int position)
+        {
+            return World.EntityStore.GetEntitiesAt(position).Single();
+        }
         
         protected EntityHandle<T> GetSingle<T>(Func<T, bool> filter = null) where T: IDungeonEntity
         {
