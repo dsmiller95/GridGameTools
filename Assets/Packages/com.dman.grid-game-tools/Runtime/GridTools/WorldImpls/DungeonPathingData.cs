@@ -120,14 +120,24 @@ public record DungeonPathingData : IDungeonBakedPathingData
         }
         
         private bool _isDisposed = false;
-        public IDungeonBakedPathingData BuildAndDispose()
+        public IDungeonBakedPathingData BakeImmutable(bool andDispose)
         {
             if(_isDisposed) throw new ObjectDisposedException("DungeonPathingDataWriter");
-            _isDisposed = true;
-            
+            PooledArray3D<BlockedTileLayers> facesToBuildWith;
+            if (andDispose)
+            {
+                // mark as disposed, we are "releasing" the blocked faces memory, into the newly baked object
+                _isDisposed = true;
+                facesToBuildWith = BlockedFaces;
+            }
+            else
+            {
+                facesToBuildWith = PooledArray3D<BlockedTileLayers>.Copy(BlockedFaces);
+            }
+
             // we always transfer our memory into the new built object. don't dispose.
             Profiler.BeginSample("DungeonPathingDataWriter.Build");
-            var result = new DungeonPathingData(Bounds, PathedToPosition, BlockedFaces);
+            var result = new DungeonPathingData(Bounds, PathedToPosition, facesToBuildWith);
             Profiler.EndSample();
             return result;
         }

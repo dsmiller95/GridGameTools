@@ -40,54 +40,16 @@ public record DungeonWorld : IDungeonWorld
     {
         Profiler.BeginSample("WriteWorldInternal");
         Profiler.BeginSample("WriteWorldInternal.createWriters");
-        var writer = EntityStore.CreateWriter();
-        using var pathingWriter = PathingData.CreateWriter();
-        var componentWriter = this.Components.CreateWriter();
-        var commandableWorld = new WritableDungeonWorld(this, writer, pathingWriter, componentWriter);
+        using var commandableWorld = new WritableDungeonWorld(this);
         Profiler.EndSample();
         Profiler.BeginSample("WriteWorldInternal.writeAction");
         writeAction(commandableWorld);
         Profiler.EndSample();
         Profiler.BeginSample("WriteWorldInternal.applyWriteModifications");
-        var result = ApplyWriteModifications(writer, pathingWriter, componentWriter);
+        var result = commandableWorld.BakeToImmutable(disposeInternals: true);
         Profiler.EndSample();
         Profiler.EndSample();
         return result;
-    }
-
-    /// <summary>
-    /// This presumes that the written pathing data has had equivalent writes copies from the entities already
-    /// </summary>
-    /// <param name="writtenEntities"></param>
-    /// <param name="writtenPathing"></param>
-    /// <param name="writtenComponents"></param>
-    /// <returns></returns>
-    private IDungeonWorld ApplyWriteModifications(
-        IWritableEntities writtenEntities,
-        IDungeonPathingDataWriter writtenPathing,
-        IWritingComponentStore writtenComponents)
-    {
-        Profiler.BeginSample("ApplyWriteModifications_WithPathing");
-        var newStore = writtenEntities.Build();
-        var newPathingData = writtenPathing.BuildAndDispose();
-        var newComponents = writtenComponents.BakeImmutable();
-        
-        #if DUNGEON_SAFETY_CHECKS // only do this check in editor, it is very expensive.
-        var newPathingDataChecksum = PathingData.ApplyWriteRecord(newStore, writtenEntities.WriteOperations());
-        if (!newPathingData.PropertiesEqual(newPathingDataChecksum))
-        {
-            Profiler.EndSample();
-            throw new Exception("Sanity check failed. inline writes to pathing data incongruent");
-        }
-        #endif
-        Profiler.EndSample();
-        
-        return this with
-        {
-            EntityStore = newStore,
-            PathingData = newPathingData,
-            Components = newComponents
-        };
     }
     
     public  (IDungeonWorld newWorld, IEnumerable<IDungeonCommand> executedCommands) ApplyCommandsWithModifiedCommands(IEnumerable<IDungeonCommand> commands)
@@ -150,7 +112,7 @@ public record DungeonWorld : IDungeonWorld
         }
     }
     
-    private class WritableDungeonWorld : ICommandDungeon
+    private class WritableDungeonWorld : ICommandDungeon, IDisposable
     {
         private readonly DungeonWorld world;
         private IWritableEntities writableEntities { get; set; }
@@ -162,15 +124,12 @@ public record DungeonWorld : IDungeonWorld
         public IComponentStore WritableComponentStore => writingStore;
 
         public WritableDungeonWorld(
-            DungeonWorld world,
-            IWritableEntities entityWriter,
-            IDungeonPathingDataWriter pathingDataWriter,
-            IWritingComponentStore writingStore)
+            DungeonWorld world)
         {
             this.world = world;
-            writableEntities = entityWriter;
-            writablePathingData = pathingDataWriter;
-            this.writingStore = writingStore;
+            writableEntities = world.EntityStore.CreateWriter();
+            writablePathingData = world.PathingData.CreateWriter();
+            this.writingStore = world.Components.CreateWriter();
         }
 
         public IDungeonEntity GetEntity(EntityId id)
@@ -197,7 +156,42 @@ public record DungeonWorld : IDungeonWorld
             writablePathingData.ApplyWrite(changeOperation, writableEntities);
             return changeOperation.Id;
         }
+        
+        public IDungeonWorld BakeToImmutable(bool disposeInternals = false)
+        {
+            return ApplyWriteModificationsTo(world, disposeInternals);
+        }
 
+
+        private IDungeonWorld ApplyWriteModificationsTo(DungeonWorld toBaseWorld, bool disposeInternals)
+        {
+            Profiler.BeginSample("ApplyWriteModifications_WithPathing");
+            var newStore = this.writableEntities.Build();
+            var newPathingData = this.writablePathingData.BakeImmutable(andDispose: disposeInternals);
+            var newComponents = this.writingStore.BakeImmutable();
+        
+#if DUNGEON_SAFETY_CHECKS // only do this check in editor, it is very expensive.
+        var newPathingDataChecksum = toBaseWorld.PathingData.ApplyWriteRecord(newStore, this.writableEntities.WriteOperations());
+        if (!newPathingData.PropertiesEqual(newPathingDataChecksum))
+        {
+            Profiler.EndSample();
+            throw new Exception("Sanity check failed. inline writes to pathing data incongruent");
+        }
+#endif
+            Profiler.EndSample();
+        
+            return toBaseWorld with
+            {
+                EntityStore = newStore,
+                PathingData = newPathingData,
+                Components = newComponents
+            };
+        }
+
+        public void Dispose()
+        {
+            writablePathingData?.Dispose();
+        }
     }
 
     public void Dispose()

@@ -191,11 +191,17 @@ public interface IDungeonPathingDataWriter : IDungeonPathingData
     public void SetBlockedFaces(Vector3Int position, FacingDirectionFlags flags, PathingLayers layer = PathingLayers.All);
     public void SetBlockedFaces(Vector3Int position, BlockedTileLayers blockedTileFull);
     public void SetNewPlayerPosition(Vector3Int position);
-    public IDungeonBakedPathingData BuildAndDispose();
+    /// <summary>
+    /// When possible, prefer setting andDispose to true. this will transfer the memory of the writer into the baked object.
+    /// This means 0 allocations or copies when andDispose is true.
+    /// </summary>
+    /// <param name="andDispose"></param>
+    /// <returns></returns>
+    public IDungeonBakedPathingData BakeImmutable(bool andDispose = true);
 
     public void BuildAndDisposeAndSwap(ref IDungeonPathingData other)
     {
         other?.Dispose();
-        other = BuildAndDispose();
+        other = BakeImmutable();
     }
 }

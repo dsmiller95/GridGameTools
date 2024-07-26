@@ -113,7 +113,7 @@ public static class DungeonEntityStoreBlockingExtensions
             newPathingData.SetNewPlayerPosition(mostRecentPlayerPosition.Value);
         }
         
-        var result = newPathingData.BuildAndDispose();
+        var result = newPathingData.BakeImmutable(andDispose: true);
         
         Profiler.EndSample();
 

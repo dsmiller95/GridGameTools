@@ -10,4 +10,13 @@ public interface ICommandDungeon
     public IEntityStore CurrentEntityState { get; }
     public IDungeonWorld PreviousWorldState { get; }
     public IComponentStore WritableComponentStore { get; }
+    
+    /// <summary>
+    /// Very expensive - use sparingly and rarely.
+    /// </summary>
+    /// <param name="disposeInternals">
+    /// Whether to dispose the internals inside the writer. Only set to true if you have exclusive access to the writer.
+    /// </param>
+    /// <returns></returns>
+    public IDungeonWorld BakeToImmutable(bool disposeInternals = false);
 }
