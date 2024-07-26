@@ -212,6 +212,11 @@ public static class FacingDirectionExtensions
         return (RelativeDirection)(transformed % 4);
     }
 
+    public static RelativeDirection Inverse(this RelativeDirection direction)
+    {
+        return (RelativeDirection)(((int)direction + 2) % 4);
+    }
+
     public static Vector3Int GetRelativeDirectionFromAbsolute(this FacingDirection direction, Vector3Int absoluteDirection)
     {
         Quaternion rotation = direction switch
