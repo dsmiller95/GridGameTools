@@ -46,7 +46,7 @@ public class DungeonWorldManager : MonoBehaviour,
     [SerializeField] private Transform worldParent;
     [SerializeField] public UnityEvent onAllRenderUpdatesComplete;
     
-    private List<IRenderUpdate> _updateListeners = new List<IRenderUpdate>();
+    private SortedDictionary<int, List<IRenderUpdate>> _updateListeners = new ();
     private AsyncFnOnceCell _updateCell;
 
     public GridRandomGen SpawningRng { get; private set; }
@@ -187,11 +187,21 @@ public class DungeonWorldManager : MonoBehaviour,
 
     public void AddUpdateListener(IRenderUpdate listener)
     {
-        _updateListeners.Add(listener);
+        if(_updateListeners.TryGetValue(listener.RenderPriority, out var list))
+        {
+            list.Add(listener);
+        }
+        else
+        {
+            _updateListeners[listener.RenderPriority] = new List<IRenderUpdate>{listener};
+        }
     }
     public void RemoveUpdateListener(IRenderUpdate listener)
     {
-        _updateListeners.Remove(listener);
+        if(_updateListeners.TryGetValue(listener.RenderPriority, out var list))
+        {
+            list.Remove(listener);
+        }
     }
     
     private void TriggerWorldUpdated(DungeonUpdateEvent update)
@@ -199,13 +209,18 @@ public class DungeonWorldManager : MonoBehaviour,
         Profiler.BeginSample("Trigger world updates");
         _updateCell.TryRun(async (cancel) =>
         {
-            var tasks = new UniTask[_updateListeners.Count];
-            // reverse order in case the update listeners remove themselves
-            for (int i = _updateListeners.Count - 1; i >= 0; i--)
+            foreach (var kvp in _updateListeners)
             {
-                tasks[i] = _updateListeners[i].RespondToUpdate(update, cancel);
+                Debug.Log("Running update for priority " + kvp.Key);
+                var listenerBatch = kvp.Value;
+                var tasks = new UniTask[listenerBatch.Count];
+                // reverse order in case the update listeners remove themselves
+                for (int i = listenerBatch.Count - 1; i >= 0; i--)
+                {
+                    tasks[i] = listenerBatch[i].RespondToUpdate(update, cancel);
+                }
+                await UniTask.WhenAll(tasks);
             }
-            await UniTask.WhenAll(tasks);
             onAllRenderUpdatesComplete.Invoke();
         }, "Cannot update world while already updating");
         Profiler.EndSample();

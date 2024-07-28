@@ -77,6 +77,8 @@ public abstract class BoundToEntity<T> : MonoBehaviour, IBoundToEntity, IRenderU
         
     }
 
+    public int RenderPriority => 0;
+
     public async UniTask RespondToUpdate(DungeonUpdateEvent update, CancellationToken cancel)
     {
         _currentProcessingEvent = update;
