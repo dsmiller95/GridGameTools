@@ -46,6 +46,9 @@ public class DungeonWorldManager : MonoBehaviour,
     [SerializeField] private Transform worldParent;
     [SerializeField] public UnityEvent onAllRenderUpdatesComplete;
     
+    [Header("Debug")]
+    [SerializeField] public bool logTopLevelCommands = false;
+    
     private SortedDictionary<int, List<IRenderUpdate>> _updateListeners = new ();
     private AsyncFnOnceCell _updateCell;
 
@@ -94,7 +97,9 @@ public class DungeonWorldManager : MonoBehaviour,
     
     public void ApplyCommand(IDungeonCommand command)
     {
-        var (newWorld, modifiedCommands) = CurrentWorld.ApplyCommandsWithModifiedCommands(new []{command });
+        var commands = new []{command};
+        LogCommands(commands);
+        var (newWorld, modifiedCommands) = CurrentWorld.ApplyCommandsWithModifiedCommands(commands);
         this.UpdateWorld(newWorld, modifiedCommands);
     }
     
@@ -102,7 +107,13 @@ public class DungeonWorldManager : MonoBehaviour,
     {
         if(!CanUpdateWorld()) throw new InvalidOperationException("Cannot update world while already updating");
         var startPosition = GetPositionOfEntity(CurrentWorld.EntityStore, onlyApplyIfMovedPosition);
-        
+ 
+        if (logTopLevelCommands)
+        {
+            // avoid multiple enumerations
+            allCommands = allCommands.ToList();
+            LogCommands(allCommands);
+        }
         var (newWorld, modifiedCommands) = CurrentWorld.ApplyCommandsWithModifiedCommands(allCommands);
         var nextPosition = GetPositionOfEntity(newWorld.EntityStore, onlyApplyIfMovedPosition);
         if(startPosition.HasValue && startPosition == nextPosition)
@@ -112,6 +123,14 @@ public class DungeonWorldManager : MonoBehaviour,
         }
         
         this.UpdateWorld(newWorld, modifiedCommands);
+    }
+    
+    private void LogCommands(IEnumerable<IDungeonCommand> commands)
+    {
+        if (logTopLevelCommands)
+        {
+            Debug.Log("DungeonWorldManager Top level Commands:\n" + string.Join("\n", commands.Select(c => c.ToString())));
+        }
     }
 
     private static Vector3Int? GetPositionOfEntity(IEntityStore entityStore, [CanBeNull] EntityId optionalEntity)
