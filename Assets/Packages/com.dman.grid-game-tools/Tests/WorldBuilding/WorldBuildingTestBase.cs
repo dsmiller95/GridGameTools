@@ -44,6 +44,11 @@ namespace GridDomain.Test
         {
             components = componentFactories.SelectMany(x => x.GetComponents()).ToList();
         }
+
+        protected void AddWorldComponents(params IWorldComponentFactory[] componentFactories)
+        {
+            components = components?.Concat(componentFactories.SelectMany(x => x.GetComponents())).ToList() ?? componentFactories.SelectMany(x => x.GetComponents()).ToList();
+        }
         
         protected void CreateWorld(string characterMap, params (string, Func<Vector3Int, IDungeonEntity>)[] otherFactories)
         {
