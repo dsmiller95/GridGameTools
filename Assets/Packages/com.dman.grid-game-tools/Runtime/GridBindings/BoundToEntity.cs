@@ -22,9 +22,9 @@ public abstract class BoundToEntity<T> : MonoBehaviour, IBoundToEntity, IRenderU
     [CanBeNull] private DungeonUpdateEvent _currentProcessingEvent;
     [CanBeNull] protected DungeonUpdateEvent CurrentProcessingEvent => _currentProcessingEvent;
 
-    public IDungeonEntity GetEntityObjectGuessGeneric(IDungeonToWorldContext context) => GetEntityObjectGuess(context);
+    public IDungeonEntity GetEntityObjectGuessGeneric(IDungeonToWorldContext context, Transform componentGenerators) => GetEntityObjectGuess(context, componentGenerators);
     
-    [CanBeNull] protected abstract T GetEntityObjectGuess(IDungeonToWorldContext context);
+    [CanBeNull] protected abstract T GetEntityObjectGuess(IDungeonToWorldContext context, Transform componentGenerators);
 
 
     public bool TryBind(EntityId entity, IDungeonUpdater updater, IDungeonToWorldContext worldContext, IDungeonWorld world)

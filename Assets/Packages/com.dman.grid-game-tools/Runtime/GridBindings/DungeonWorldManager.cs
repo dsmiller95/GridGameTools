@@ -53,6 +53,7 @@ public class DungeonWorldManager : MonoBehaviour,
     private AsyncFnOnceCell _updateCell;
 
     public GridRandomGen SpawningRng { get; private set; }
+    public Transform EntityParent => worldParent;
     
     private void Awake()
     {
@@ -182,7 +183,6 @@ public class DungeonWorldManager : MonoBehaviour,
         return new Vector3Int(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z));
     }
 
-    public Transform EntityParent => worldParent;
 
     private void OnDrawGizmosSelected()
     {
