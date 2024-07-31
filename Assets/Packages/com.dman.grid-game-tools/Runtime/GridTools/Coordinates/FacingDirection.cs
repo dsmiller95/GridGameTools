@@ -127,6 +127,20 @@ public static class FacingDirectionExtensions
 
         return null;
     }
+    
+    public static FacingDirection? ToBestFacingAdjacentOnly(this Vector3Int direction)
+    {
+        if (direction.GetNonzeroAxisCount() != 1) return null;
+        if(direction.x != 0)
+        {
+            return direction.x > 0 ? FacingDirection.East : FacingDirection.West;
+        }
+        if(direction.z != 0)
+        {
+            return direction.z > 0 ? FacingDirection.North : FacingDirection.South;
+        }
+        return null;
+    }
 
     public static FacingDirectionFlags? ToBestFacingOptionIncludeUp(this Vector3Int direction)
     {
