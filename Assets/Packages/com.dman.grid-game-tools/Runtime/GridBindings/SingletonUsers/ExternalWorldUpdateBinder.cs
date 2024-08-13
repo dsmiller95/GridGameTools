@@ -9,11 +9,17 @@ public interface IRenderUpdateAndSwap : IRenderUpdate
     public void OnWorldWasSwapped();
 }
 
+public interface IBindExternalUpdates : IDungeonUpdater
+{
+    public void AddUpdateListenerWithSwap(IRenderUpdateAndSwap listener);
+    public void RemoveUpdateListenerWithSwap(IRenderUpdateAndSwap listener);
+}
+
 /// <summary>
 /// used to bind things which are not direct children of the world to render updates.
 /// </summary>
 [UnitySingleton]
-public class ExternalWorldUpdateBinder : MonoBehaviour, IDungeonUpdater
+public class ExternalWorldUpdateBinder : MonoBehaviour, IBindExternalUpdates
 {
     private List<IRenderUpdate> internalListenerCache = new();
 
