@@ -9,7 +9,7 @@ public interface IDungeonWorld: IDisposable
     /// <summary>
     /// a constant seed for this world. never changes.
     /// </summary>
-    public ulong WorldRngSeed { get; }
+    public uint WorldRngSeed { get; }
     public DungeonBounds Bounds { get; }
 
     public (IDungeonWorld newWorld, IEnumerable<IDungeonCommand> executedCommands)

@@ -7,23 +7,23 @@ using UnityEngine.Profiling;
 
 public record DungeonWorld : IDungeonWorld
 {
-    private readonly ulong _seed;
-    public ulong WorldRngSeed => _seed;
+    private readonly uint _seed;
+    public uint WorldRngSeed => _seed;
     public DungeonBounds Bounds { get; }
     
     public IDungeonBakedPathingData PathingData { get; private set; }
     public ICachingEntityStore EntityStore { get; private set; }
     public IComponentStore Components { get; private set; }
-    private DungeonWorld(IDungeonBakedPathingData pathing, ICachingEntityStore entities, IComponentStore components, ulong seed = 0)
+    private DungeonWorld(IDungeonBakedPathingData pathing, ICachingEntityStore entities, IComponentStore components, uint seed = 0)
     {
         Bounds = pathing.Bounds;
         PathingData = pathing;
         EntityStore = entities;
         Components = components;
-        this._seed = seed == 0 ? (ulong)UnityEngine.Random.Range(1, int.MaxValue) : seed;
+        this._seed = seed == 0 ? (uint)UnityEngine.Random.Range(1, int.MaxValue) : seed;
     }
     
-    public static DungeonWorld CreateEmpty(DungeonBounds bounds, ulong seed = 0, IEnumerable<IWorldComponent> components = null)
+    public static DungeonWorld CreateEmpty(DungeonBounds bounds, uint seed = 0, IEnumerable<IWorldComponent> components = null)
     {
         var pathingData = new DungeonPathingData(bounds, playerPosition: Vector3Int.zero);
         var entityStore = new DungeonEntityStore(new Dictionary<EntityId, IDungeonEntity>());
