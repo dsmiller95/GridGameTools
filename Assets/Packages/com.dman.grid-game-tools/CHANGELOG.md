@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.1] - 2024-08-13
+
+### Added
+
+- IApplyCommandPostWorldLoad to apply a command to the world in the DungeonWorldLoader post-world-load
+
 ## [0.3.0] - 2024-08-13
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "com.dman.grid-game-tools",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "displayName": "Grid Game Tools",
   "description": "A suite of framework-like tools that aim to make implementing and testing\ngrid-based games easier.",
   "unity": "2020.1",
