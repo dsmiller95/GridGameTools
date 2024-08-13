@@ -4,6 +4,11 @@ using GridRandom;
 using UnityEngine;
 using WorldCreation;
 
+public interface IApplyCommandPostWorldLoad
+{
+    public IDungeonCommand PostWorldLoadCommand { get; }
+}
+
 /// <summary>
 /// Collects all Bindings which are child to this game object.
 /// Will initialize the dungeon world singleton with a world containing these entities.
@@ -49,6 +54,11 @@ public class DungeonWorldLoader : MonoBehaviour
         var world = DungeonWorld.CreateEmpty(bounds, seed, components);
 
         (IDungeonWorld newWorld, var entities) = world.AddEntities(allPairs.Select(x => x.entity));
+        var postWorldCommand = GetComponentInChildren<IApplyCommandPostWorldLoad>()?.PostWorldLoadCommand;
+        if (postWorldCommand != null)
+        {
+            newWorld = newWorld.ApplyCommand(postWorldCommand, andDispose: true);
+        }
         var entityIds = entities.ToList();
         for (int i = 0; i < entityIds.Count; i++)
         { 
