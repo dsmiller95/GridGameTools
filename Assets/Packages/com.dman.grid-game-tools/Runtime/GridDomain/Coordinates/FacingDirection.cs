@@ -169,6 +169,19 @@ public static class FacingDirectionExtensions
         return null;
     }
     
+    
+    public static float RotateAroundUpAxisDegrees(this FacingDirection direction)
+    {
+        return direction switch
+        {
+            FacingDirection.North => 0,
+            FacingDirection.East => 90,
+            FacingDirection.South => 180,
+            FacingDirection.West => 270,
+            _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+        };
+    }
+    
     public static Vector3Int ToVectorDirection(this FacingDirection direction)
     {
         return direction switch
