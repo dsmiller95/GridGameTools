@@ -1,0 +1,17 @@
+{
+    "name": "GridWorldBuilding",
+    "rootNamespace": "Dman.GridGameTools.WorldBuilding",
+    "references": [
+        "GUID:66fcb33cbe5a67e478baef5042114386",
+        "GUID:c8784c0d2f79d1949a28620ea027ab81"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

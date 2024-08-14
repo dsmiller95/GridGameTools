@@ -190,17 +190,7 @@ namespace GridDomain.Test
             DungeonBounds bounds,
             Func<Vector3Int, char> coordToCharMap)
         {
-            var actualCharsXYZ = new XyzGrid<char>(bounds.Size);
-            
-            foreach (var arrayPoint in VectorUtilities.IterateAllIn(bounds.Size))
-            {
-                var worldPoint = arrayPoint + bounds.Min;
-                var chr = coordToCharMap(worldPoint);
-
-                actualCharsXYZ[arrayPoint] = chr;
-            }
-
-            return WorldBuildString.BuildStringFromXYZ(actualCharsXYZ, buildOpts);
+            return WorldBuild.ToWorldStringByQuery(buildOpts, bounds, coordToCharMap);
         }
 
         
