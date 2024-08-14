@@ -4,7 +4,7 @@ using System.Text;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace GridDomain.Test
+namespace Dman.GridGameTools.WorldBuilding
 {
     public struct WorldBuildConfig
     {

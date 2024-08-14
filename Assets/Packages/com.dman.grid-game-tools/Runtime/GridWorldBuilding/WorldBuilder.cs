@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Dman.Math;
 using UnityEngine;
 
-namespace GridDomain.Test
+namespace Dman.GridGameTools.WorldBuilding
 {
     public interface IDefaultFactoriesFactory
     {

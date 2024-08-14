@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace GridDomain.Test
+namespace Dman.GridGameTools.WorldBuilding
 {
     public enum Axis
     {

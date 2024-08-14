@@ -1,5 +1,5 @@
 {
-    "name": "GridWorldBuilding",
+    "name": "com.dman.grid-game-tools.world-building",
     "rootNamespace": "Dman.GridGameTools.WorldBuilding",
     "references": [
         "GUID:66fcb33cbe5a67e478baef5042114386",

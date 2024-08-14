@@ -2,7 +2,7 @@ using System;
 using Dman.Math;
 using UnityEngine;
 
-namespace GridDomain.Test
+namespace Dman.GridGameTools.WorldBuilding
 {
     public class WorldBuild
     {

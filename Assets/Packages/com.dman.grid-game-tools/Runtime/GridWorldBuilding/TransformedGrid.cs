@@ -4,7 +4,7 @@ using System.Linq;
 using Dman.Math;
 using UnityEngine;
 
-namespace GridDomain.Test
+namespace Dman.GridGameTools.WorldBuilding
 {
     public readonly struct TransformedCoordinate
     {
