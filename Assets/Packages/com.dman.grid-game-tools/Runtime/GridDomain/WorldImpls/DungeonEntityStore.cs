@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -57,12 +58,19 @@ public record DungeonEntityStore : ICachingEntityStore
         return new WritableDungeonEntities(this);
     }
     
-    private class WritableDungeonEntities : IWritableEntities
+    private class WritableDungeonEntities :
+#if DUNGEON_SAFETY_CHECKS
+        IWritableEntitiesWithWriteRecord
+#else
+        IWritableEntities
+#endif
     {
         private Dictionary<EntityId, IDungeonEntity> modifiedEntities;
         private DictionaryBackedLookup<Vector3Int, EntityId> moblieEntityPositions;
         private DungeonEntityStore underlying;
+#if DUNGEON_SAFETY_CHECKS
         private List<EntityWriteRecord> writeOperations;
+#endif
         
         /// <summary>
         /// COW style structure. null if no changes. If any changes, is a copy of the underlying lookup with changes applied.
@@ -74,7 +82,9 @@ public record DungeonEntityStore : ICachingEntityStore
             this.underlying = underlying;
             modifiedEntities = new Dictionary<EntityId, IDungeonEntity>();
             this.moblieEntityPositions = new DictionaryBackedLookup<Vector3Int, EntityId>(this.underlying._mobileEntitiesInTiles);
+#if DUNGEON_SAFETY_CHECKS
             writeOperations = new List<EntityWriteRecord>();
+#endif
             newStaticEntities = null;
         }
 
@@ -121,11 +131,6 @@ public record DungeonEntityStore : ICachingEntityStore
             return moblieEntityPositions[position].Concat(staticEntities[position]);
         }
 
-        public IEnumerable<EntityWriteRecord> WriteOperations()
-        {
-            return writeOperations;
-        }
-
         public EntityWriteRecord SetEntity(EntityId id, IDungeonEntity newValue)
         {
             var oldValue = this.GetEntity(id);
@@ -143,7 +148,7 @@ public record DungeonEntityStore : ICachingEntityStore
             modifiedEntities[id] = newValue;
             var writeType = oldValue == null ? EntityWriteRecord.Change.Add : EntityWriteRecord.Change.Update;
             var writeRecord = new EntityWriteRecord(id, oldValue, newValue, writeType);
-            writeOperations.Add(writeRecord);
+            AddWriteRecord(writeRecord);
             return writeRecord;
         }
 
@@ -153,7 +158,7 @@ public record DungeonEntityStore : ICachingEntityStore
             modifiedEntities[id] = entity;
             AddEntityPosition(entity, id);
             var writeOperation = new EntityWriteRecord(id, null, entity, EntityWriteRecord.Change.Add);
-            writeOperations.Add(writeOperation);
+            AddWriteRecord(writeOperation);
             return writeOperation;
         }
 
@@ -167,10 +172,26 @@ public record DungeonEntityStore : ICachingEntityStore
             }
             modifiedEntities[id] = null;
             var writeOperation = new EntityWriteRecord(id, oldValue, null, EntityWriteRecord.Change.Delete); 
-            writeOperations.Add(writeOperation);
+            AddWriteRecord(writeOperation);
             return writeOperation;
         }
-        
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void AddWriteRecord(EntityWriteRecord record)
+        {
+#if DUNGEON_SAFETY_CHECKS
+            writeOperations.Add(record);
+#endif
+        }
+
+#if DUNGEON_SAFETY_CHECKS
+        public IEnumerable<EntityWriteRecord> WriteOperations()
+        {
+            return writeOperations;
+        }
+#endif
+
         private DictionaryBackedLookup<Vector3Int, EntityId> EnsureCopiedStaticEntities()
         {
             if(newStaticEntities != null) return newStaticEntities;

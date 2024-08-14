@@ -171,12 +171,14 @@ public record DungeonWorld : IDungeonWorld
             var newComponents = this.writingStore.BakeImmutable();
         
 #if DUNGEON_SAFETY_CHECKS // only do this check in editor, it is very expensive.
-        var newPathingDataChecksum = toBaseWorld.PathingData.ApplyWriteRecord(newStore, this.writableEntities.WriteOperations());
-        if (!newPathingData.PropertiesEqual(newPathingDataChecksum))
-        {
-            Profiler.EndSample();
-            throw new Exception("Sanity check failed. inline writes to pathing data incongruent");
-        }
+            var withWriteRecord = this.writableEntities as IWritableEntitiesWithWriteRecord;
+            Debug.Assert(withWriteRecord != null, nameof(withWriteRecord) + " != null");
+            var newPathingDataChecksum = toBaseWorld.PathingData.ApplyWriteRecord(newStore, withWriteRecord.WriteOperations());
+            if (!newPathingData.PropertiesEqual(newPathingDataChecksum))
+            {
+                Profiler.EndSample();
+                throw new Exception("Sanity check failed. inline writes to pathing data incongruent");
+            }
 #endif
             Profiler.EndSample();
         

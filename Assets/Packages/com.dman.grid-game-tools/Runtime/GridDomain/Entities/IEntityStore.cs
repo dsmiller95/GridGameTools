@@ -144,8 +144,18 @@ public interface IWritableEntities : IEntityStore
     [NotNull] public EntityWriteRecord CreateEntity(IDungeonEntity entity);
     [CanBeNull] public EntityWriteRecord RemoveEntity(EntityId id);
     
+}
+
+#if DUNGEON_SAFETY_CHECKS
+/// <summary>
+/// only useful when DUNGEON_SAFETY_CHECKS is defined
+/// </summary>
+internal interface IWritableEntitiesWithWriteRecord : IWritableEntities
+{
     public IEnumerable<EntityWriteRecord> WriteOperations();
 }
+#endif
+
 public record EntityWriteRecord(EntityId Id, [CanBeNull] IDungeonEntity OldEntity, [CanBeNull] IDungeonEntity NewEntity, EntityWriteRecord.Change ChangeType)
 {
     public EntityId Id { get; } = Id;
