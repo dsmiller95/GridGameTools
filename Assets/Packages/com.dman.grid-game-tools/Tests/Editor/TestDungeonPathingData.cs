@@ -2,7 +2,7 @@ using NUnit.Framework;
 using UnityEngine;
 using static GridDomain.Test.PathingDataTestHelpers;
 
-namespace GridDomain.Test
+namespace Dman.GridGameTools.Tests
 {
     public class TestDungeonPathingData
     {

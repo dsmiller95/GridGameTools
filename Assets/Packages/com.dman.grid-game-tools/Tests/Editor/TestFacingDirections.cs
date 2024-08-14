@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using UnityEngine;
 
-namespace GridDomain.Test
+namespace Dman.GridGameTools.Tests
 {
     public class TestFacingDirections
     {

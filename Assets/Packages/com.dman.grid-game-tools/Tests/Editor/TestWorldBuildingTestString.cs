@@ -1,8 +1,9 @@
 using System.Text;
+using Dman.GridGameTools.WorldBuilding;
 using NUnit.Framework;
-using static GridDomain.Test.WorldBuildConfig;
+using static Dman.GridGameTools.WorldBuilding.WorldBuildConfig;
 
-namespace GridDomain.Test
+namespace Dman.GridGameTools.Tests
 {
     public class TestWorldBuildingTestString
     {
