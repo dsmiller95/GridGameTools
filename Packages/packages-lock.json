@@ -15,12 +15,13 @@
       "url": "https://package.openupm.com"
     },
     "com.dman.utilities": {
-      "version": "file:../../DmanUtilities/Assets/UtilityScripts/com.dman.utilities",
+      "version": "0.7.0",
       "depth": 0,
-      "source": "local",
+      "source": "registry",
       "dependencies": {
         "com.cysharp.unitask": "2.3.1"
-      }
+      },
+      "url": "https://package.openupm.com"
     },
     "com.unity.collab-proxy": {
       "version": "2.3.1",

@@ -38,7 +38,7 @@
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0",
     "com.dman.math": "0.1.0",
-    "com.dman.utilities": "file:../../DmanUtilities/Assets/UtilityScripts/com.dman.utilities",
+    "com.dman.utilities": "0.7.0",
     "com.cysharp.unitask": "2.5.4"
   },
   "scopedRegistries": [
@@ -47,7 +47,8 @@
       "url": "https://package.openupm.com",
       "scopes": [
         "com.cysharp.unitask",
-        "com.dman.math"
+        "com.dman.math",
+        "com.dman.utilities"
       ]
     }
   ]
