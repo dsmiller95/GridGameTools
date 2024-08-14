@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Dman.GridGameTools;
 using GridRandom;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -172,7 +173,7 @@ public interface IDungeonPathingData: IDisposable
 /// <summary>
 /// A writer to dungeon pathing data. Will dispose when built to a baked pathing data.
 /// </summary>
-public interface IDungeonPathingDataWriter : IDungeonPathingData
+public interface IDungeonPathingDataWriter : IDungeonPathingData, IWorldHooks
 {
     /// <summary>
     /// Block the specified faces. additive. will not make anything passable, will only restrict movement
@@ -204,4 +205,5 @@ public interface IDungeonPathingDataWriter : IDungeonPathingData
         other?.Dispose();
         other = BakeImmutable();
     }
+
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dman.GridGameTools;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -146,14 +147,16 @@ public record DungeonWorld : IDungeonWorld
             };
             if (changeOperation != null)
             {
-                writablePathingData.ApplyWrite(changeOperation, writableEntities);
+                writablePathingData.EntityChange(changeOperation, writableEntities);
+                writingStore.EntityChange(changeOperation, writableEntities);
             }
         }
 
         public EntityId CreateEntity(IDungeonEntity entity)
         {
             var changeOperation = writableEntities.CreateEntity(entity);
-            writablePathingData.ApplyWrite(changeOperation, writableEntities);
+            writablePathingData.EntityChange(changeOperation, writableEntities);
+            writingStore.EntityChange(changeOperation, writableEntities);
             return changeOperation.Id;
         }
         

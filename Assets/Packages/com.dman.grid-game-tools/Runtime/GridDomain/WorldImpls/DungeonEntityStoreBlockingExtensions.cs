@@ -24,35 +24,6 @@ public static class DungeonEntityStoreBlockingExtensions
         return blocked;
     }
 
-    public static void ApplyWrite(
-        this IDungeonPathingDataWriter writer,
-        EntityWriteRecord writeRecord,
-        IEntityStore upToDateStore)
-    {
-        if (writeRecord.NewEntity is IAmPathedTo)
-        {
-            Vector3Int currentPosition = writer.PathedToPosition;
-            if (writeRecord.NewEntity.Coordinate.Position != currentPosition)
-            {
-                writer.SetNewPlayerPosition(writeRecord.NewEntity.Coordinate.Position);
-            }
-        }
-;
-        if (writeRecord.OldEntity is IBlockTile)
-        {
-            Vector3Int position = writeRecord.OldEntity.Coordinate.Position;
-            BlockedTileLayers newBlocking = upToDateStore.QueryFacesBlockedFrom(position);
-            writer.SetBlockedFaces(position, newBlocking);
-        }
-
-        if (writeRecord.NewEntity is IBlockTile)
-        {
-            Vector3Int position = writeRecord.NewEntity.Coordinate.Position;
-            BlockedTileLayers newBlocking = upToDateStore.QueryFacesBlockedFrom(position);
-            writer.SetBlockedFaces(position, newBlocking);
-        }
-    }
-    
     public static IDungeonBakedPathingData ApplyWriteRecord(
         this IDungeonPathingData existingPathing,
         IEntityStore newStore,

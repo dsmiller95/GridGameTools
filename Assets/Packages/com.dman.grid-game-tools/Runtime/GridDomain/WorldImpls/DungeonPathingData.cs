@@ -148,5 +148,31 @@ public record DungeonPathingData : IDungeonBakedPathingData
             _isDisposed = true;
             BlockedFaces.Dispose();
         }
+
+        public void EntityChange(EntityWriteRecord writeRecord, IEntityStore upToDateStore)
+        {
+            if (writeRecord.NewEntity is IAmPathedTo)
+            {
+                Vector3Int currentPosition = this.PathedToPosition;
+                if (writeRecord.NewEntity.Coordinate.Position != currentPosition)
+                {
+                    this.SetNewPlayerPosition(writeRecord.NewEntity.Coordinate.Position);
+                }
+            }
+            
+            if (writeRecord.OldEntity is IBlockTile)
+            {
+                Vector3Int position = writeRecord.OldEntity.Coordinate.Position;
+                BlockedTileLayers newBlocking = upToDateStore.QueryFacesBlockedFrom(position);
+                this.SetBlockedFaces(position, newBlocking);
+            }
+
+            if (writeRecord.NewEntity is IBlockTile)
+            {
+                Vector3Int position = writeRecord.NewEntity.Coordinate.Position;
+                BlockedTileLayers newBlocking = upToDateStore.QueryFacesBlockedFrom(position);
+                this.SetBlockedFaces(position, newBlocking);
+            }
+        }
     }
 }
