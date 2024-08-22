@@ -28,12 +28,6 @@ namespace Dman.GridGameTools.DataStructures
             this.Size = size;
         }
     
-        /// <summary>
-        /// Get a new pooled array. will rend from the shared array pool if there exists an array of the exact.
-        /// </summary>
-        /// <param name="size"></param>
-        /// <param name="fillWith"></param>
-        /// <returns></returns>
         public static PooledArray3D<T> CreateAndFill(Vector3Int size, T fillWith = default)
         {
             var fullSize = ArraySize(size);
@@ -89,15 +83,21 @@ namespace Dman.GridGameTools.DataStructures
             return rented;
         }
 
-        // TODO: implement a finalizer as well to ensure this releases on finalize
-        public void Dispose()
+        private void ReleaseUnmanagedResources()
         {
             if (_isDisposed) return;
             _isDisposed = true;
-            var refId = _array.GetRefId();
+            // var refId = _array.GetRefId();
             // Debug.Log($"POOLING: RETR: {refId} SIZE: {_array.Length} Requested {ArraySize(Size)}");
             Pool.Return(_array);
         }
 
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources();
+            GC.SuppressFinalize(this);
+        }
+
+        ~PooledArray3D() => ReleaseUnmanagedResources();
     }
 }
