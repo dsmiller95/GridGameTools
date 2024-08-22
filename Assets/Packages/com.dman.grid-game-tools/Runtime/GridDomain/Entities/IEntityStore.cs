@@ -45,14 +45,20 @@ namespace Dman.GridGameTools.Entities
     
         public IEnumerable<(EntityId id, IDungeonEntity entity)> GetEntityPairsAt(Vector3Int position)
         {
-            return this.GetEntitiesAt(position)
-                .Select(x => (x, this.GetEntity(x)));
+            foreach (var entityId in GetEntitiesAt(position))
+            {
+                var entityObject = GetEntity(entityId);
+                yield return (entityId,  entityObject);
+            }
         }
         public IEnumerable<EntityId> GetEntitiesOfTypeAt<T>(Vector3Int position)
         {
-            return this.GetEntityPairsAt(position)
-                .Where(x => x.entity is T)
-                .Select(x => x.id);
+            foreach (var entityId in GetEntitiesAt(position))
+            {
+                var entityObject = GetEntity(entityId);
+                if (entityObject is not T typedEntity) continue;
+                yield return entityId;
+            }
         }
         public IEnumerable<EntityId> GetEntitiesOfType<T>()
         {
@@ -69,17 +75,28 @@ namespace Dman.GridGameTools.Entities
 
         public IEnumerable<IDungeonEntity> GetEntityObjectsAt(Vector3Int position)
         {
-            return this.GetEntitiesAt(position).Select(this.GetEntity);
+            foreach (var entityId in GetEntitiesAt(position))
+            {
+                yield return GetEntity(entityId);
+            }
         }
         public IEnumerable<(EntityId, T)> GetEntityPairsOfTypeAt<T>(Vector3Int position) where T: class
         {
-            return this.GetEntityPairsAt(position)
-                .Where(x => x.entity is T)
-                .Select(x => (x.id, x.entity as T));
+            foreach (var entityId in GetEntitiesAt(position))
+            {
+                var entityObject = GetEntity(entityId);
+                if (entityObject is not T typedEntity) continue;
+                yield return (entityId, typedEntity);
+            }
         }
         public IEnumerable<T> GetEntityObjectsOfTypeAt<T>(Vector3Int position) where T: class
         {
-            return this.GetEntityPairsOfTypeAt<T>(position).Select(x => x.Item2);
+            foreach (var entityId in GetEntitiesAt(position))
+            {
+                var entityObject = GetEntity(entityId);
+                if (entityObject is not T typedEntity) continue;
+                yield return typedEntity;
+            }
         }
     
         public T GetEntity<T>(EntityHandle<T> handle) where T : IDungeonEntity
