@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace Dman.GridGameTools
 {
-    public interface IComponentStore
+    public interface IComponentStore : IDisposable
     {
         public IWritingComponentStore CreateWriter();
         [CanBeNull] public T TryGet<T>() where T: class;

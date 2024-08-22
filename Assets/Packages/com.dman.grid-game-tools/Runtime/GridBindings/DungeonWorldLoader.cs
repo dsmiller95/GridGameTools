@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dman.GridGameTools;
@@ -35,6 +36,8 @@ public class DungeonWorldLoader : MonoBehaviour
         WorldManager.TakeInitialWorldState(newWorld);
     }
 
+    [Obsolete]
+    [SerializeField] private bool createPathingExtraAlways = true;
     public IDungeonWorld CreateAndAddEntitiesFromAllBindings(
         IDungeonToWorldContext context,
         IDungeonUpdater updater,
@@ -51,8 +54,12 @@ public class DungeonWorldLoader : MonoBehaviour
 
         bounds = bounds.Extend(bounds.Max + maxBoundsExtension);
 
-        var components = GetComponents();
-        var world = DungeonWorld.CreateEmpty(bounds, seed, components);
+        var creationContext = new WorldComponentCreationContext
+        {
+            WorldBounds = bounds
+        };
+        var components = GetComponents(creationContext);
+        var world = DungeonWorld.CreateEmpty(seed, components);
 
         (IDungeonWorld newWorld, var entities) = world.AddEntities(allPairs.Select(x => x.entity));
         var postWorldCommand = GetComponentInChildren<IApplyCommandPostWorldLoad>()?.PostWorldLoadCommand;
@@ -94,13 +101,18 @@ public class DungeonWorldLoader : MonoBehaviour
 
         return entitiesAndBindings;
     }
+
     
-    private IEnumerable<IWorldComponent> GetComponents()
+    private IEnumerable<IWorldComponent> GetComponents(WorldComponentCreationContext context)
     {
         var componentCreators = WorldComponentCreators.GetComponents<ICreateDungeonComponent>();
+        if (createPathingExtraAlways)
+        {
+            yield return new DungeonPathingData(context.WorldBounds, playerPosition: Vector3Int.zero);
+        }
         foreach (var creator in componentCreators)
         {
-            foreach (var component in creator.CreateComponents())
+            foreach (var component in creator.CreateComponents(context))
             {
                 yield return component;
             }

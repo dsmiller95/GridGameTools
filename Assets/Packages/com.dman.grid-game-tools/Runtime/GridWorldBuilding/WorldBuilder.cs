@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Dman.Math;
 using UnityEngine;
 
@@ -44,8 +45,10 @@ namespace Dman.GridGameTools.WorldBuilding
         {
             var allEntities = Build(Vector3Int.zero, characterMap);
             var bounds = new DungeonBounds(Vector3Int.zero, characterMap.Size());
+            var pathingData = new DungeonPathingData(bounds, playerPosition: Vector3Int.zero);
+            components = components?.Append(pathingData) ?? new[] {pathingData};
             
-            return DungeonWorld.CreateEmpty(bounds, seed, components)
+            return DungeonWorld.CreateEmpty(seed, components)
                 .AddEntities(allEntities).world;
         }
 

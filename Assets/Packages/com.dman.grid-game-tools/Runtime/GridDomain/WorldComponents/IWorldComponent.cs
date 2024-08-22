@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace Dman.GridGameTools
 {
-    public interface IWorldComponent
+    public interface IWorldComponent : IDisposable
     {
         [CanBeNull] public IWorldComponentWriter GetWriter();
     }

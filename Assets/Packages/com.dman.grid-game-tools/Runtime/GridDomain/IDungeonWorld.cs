@@ -11,11 +11,13 @@ public interface IDungeonWorld: IDisposable
     /// a constant seed for this world. never changes.
     /// </summary>
     public uint WorldRngSeed { get; }
-    public DungeonBounds Bounds { get; }
+
+    public DungeonBounds Bounds => PathingData.Bounds;
 
     public (IDungeonWorld newWorld, IEnumerable<IDungeonCommand> executedCommands)
         ApplyCommandsWithModifiedCommands(IEnumerable<IDungeonCommand> commands);
-    public IDungeonPathingDataBaked PathingData { get; }
+
+    public IDungeonPathingDataBaked PathingData => this.Components.AssertGet<IDungeonPathingDataBaked>();
 
     public ICachingEntityStore EntityStore { get; }
     public IComponentStore Components { get; }

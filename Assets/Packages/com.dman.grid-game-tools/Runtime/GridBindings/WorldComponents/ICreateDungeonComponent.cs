@@ -5,6 +5,6 @@ namespace WorldCreation
 {
     public interface ICreateDungeonComponent
     {
-        public IEnumerable<IWorldComponent> CreateComponents();
+        public IEnumerable<IWorldComponent> CreateComponents(WorldComponentCreationContext creationContext);
     }
 }

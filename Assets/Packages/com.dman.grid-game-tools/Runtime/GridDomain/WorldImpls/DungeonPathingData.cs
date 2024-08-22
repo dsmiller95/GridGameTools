@@ -47,12 +47,17 @@ public record DungeonPathingData : IDungeonPathingDataBaked, IWorldComponent
 
     public IDungeonPathingDataWriter CreateWriter()
     {
-        return new DungeonPathingDataWriter(this);
+        return CreateWriterInternal();
     }
 
     public IWorldComponentWriter GetWriter()
     {
-        throw new NotImplementedException();
+        return CreateWriterInternal();
+    }
+    
+    private DungeonPathingDataWriter CreateWriterInternal()
+    {
+        return new DungeonPathingDataWriter(this);
     }
     
     public void Dispose()

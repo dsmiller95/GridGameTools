@@ -8,6 +8,7 @@ public static class DungeonWorldFactory
     {
         var bounds = new DungeonBounds(initialDungeonState.minBounds, initialDungeonState.maxBounds);
         uint seed = initialDungeonState.SeedOrRngIfDefault;
-        return DungeonWorld.CreateEmpty(bounds, seed);
+        var pathingData = new DungeonPathingData(bounds, playerPosition: Vector3Int.zero);
+        return DungeonWorld.CreateEmpty(seed, pathingData);
     }
 }

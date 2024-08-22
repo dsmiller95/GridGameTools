@@ -10,26 +10,26 @@ public record DungeonWorld : IDungeonWorld
 {
     private readonly uint _seed;
     public uint WorldRngSeed => _seed;
-    public DungeonBounds Bounds { get; }
     
-    public IDungeonPathingDataBaked PathingData { get; private set; }
     public ICachingEntityStore EntityStore { get; private set; }
     public IComponentStore Components { get; private set; }
-    private DungeonWorld(IDungeonPathingDataBaked pathing, ICachingEntityStore entities, IComponentStore components, uint seed = 0)
+    private DungeonWorld(ICachingEntityStore entities, IComponentStore components, uint seed = 0)
     {
-        Bounds = pathing.Bounds;
-        PathingData = pathing;
         EntityStore = entities;
         Components = components;
         this._seed = seed == 0 ? (uint)UnityEngine.Random.Range(1, int.MaxValue) : seed;
     }
     
-    public static DungeonWorld CreateEmpty(DungeonBounds bounds, uint seed = 0, IEnumerable<IWorldComponent> components = null)
+    public static DungeonWorld CreateEmpty(uint seed = 0, IEnumerable<IWorldComponent> components = null)
     {
-        var pathingData = new DungeonPathingData(bounds, playerPosition: Vector3Int.zero);
         var entityStore = new DungeonEntityStore(new Dictionary<EntityId, IDungeonEntity>());
         var componentStore = new ComponentStore(components);
-        return new DungeonWorld(pathingData, entityStore, componentStore, seed);
+        return new DungeonWorld(entityStore, componentStore, seed);
+    }
+    
+    public static DungeonWorld CreateEmpty(uint seed, params IWorldComponent[] components)
+    {
+        return CreateEmpty(seed, (IEnumerable<IWorldComponent>)components);
     }
     
 
@@ -119,8 +119,6 @@ public record DungeonWorld : IDungeonWorld
         private IWritableEntities writableEntities { get; set; }
         private readonly IWritingComponentStore writingStore;
         public IEntityStore CurrentEntityState => writableEntities;
-        private IDungeonPathingDataWriter writablePathingData;
-        public IDungeonPathingData CurrentPathingState => writablePathingData;
         public IDungeonWorld PreviousWorldState => world;
         public IComponentStore WritableComponentStore => writingStore;
 
@@ -129,7 +127,6 @@ public record DungeonWorld : IDungeonWorld
         {
             this.world = world;
             writableEntities = world.EntityStore.CreateWriter();
-            writablePathingData = world.PathingData.CreateWriter();
             this.writingStore = world.Components.CreateWriter();
         }
 
@@ -147,7 +144,6 @@ public record DungeonWorld : IDungeonWorld
             };
             if (changeOperation != null)
             {
-                writablePathingData.EntityChange(changeOperation, writableEntities);
                 writingStore.EntityChange(changeOperation, writableEntities);
             }
         }
@@ -155,7 +151,6 @@ public record DungeonWorld : IDungeonWorld
         public EntityId CreateEntity(IDungeonEntity entity)
         {
             var changeOperation = writableEntities.CreateEntity(entity);
-            writablePathingData.EntityChange(changeOperation, writableEntities);
             writingStore.EntityChange(changeOperation, writableEntities);
             return changeOperation.Id;
         }
@@ -170,37 +165,25 @@ public record DungeonWorld : IDungeonWorld
         {
             Profiler.BeginSample("ApplyWriteModifications_WithPathing");
             var newStore = this.writableEntities.Build();
-            var newPathingData = this.writablePathingData.BakeImmutable(andDispose: disposeInternals);
             var newComponents = this.writingStore.BakeImmutable(andDispose: disposeInternals);
         
-#if DUNGEON_SAFETY_CHECKS // only do this check in editor, it is very expensive.
-            var withWriteRecord = this.writableEntities as IWritableEntitiesWithWriteRecord;
-            Debug.Assert(withWriteRecord != null, nameof(withWriteRecord) + " != null");
-            var newPathingDataChecksum = toBaseWorld.PathingData.ApplyWriteRecord(newStore, withWriteRecord.WriteOperations());
-            if (!newPathingData.PropertiesEqual(newPathingDataChecksum))
-            {
-                Profiler.EndSample();
-                throw new Exception("Sanity check failed. inline writes to pathing data incongruent");
-            }
-#endif
             Profiler.EndSample();
         
             return toBaseWorld with
             {
                 EntityStore = newStore,
-                PathingData = newPathingData,
                 Components = newComponents
             };
         }
 
         public void Dispose()
         {
-            writablePathingData?.Dispose();
+            WritableComponentStore?.Dispose();
         }
     }
 
     public void Dispose()
     {
-        PathingData.Dispose();
+        Components.Dispose();
     }
 }

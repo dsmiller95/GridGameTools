@@ -7,7 +7,7 @@ public interface ICommandDungeon
     public IDungeonEntity GetEntity(EntityId id);
     public void SetEntity(EntityId id, [CanBeNull] IDungeonEntity entity);
     public EntityId CreateEntity([NotNull] IDungeonEntity entity);
-    public IDungeonPathingData CurrentPathingState { get; }
+    public IDungeonPathingData CurrentPathingState => this.WritableComponentStore.AssertGet<IDungeonPathingData>();
     public IEntityStore CurrentEntityState { get; }
     public IDungeonWorld PreviousWorldState { get; }
     public IComponentStore WritableComponentStore { get; }

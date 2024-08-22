@@ -20,9 +20,10 @@ namespace Dman.GridGameTools.EventLog
     
     public class EventLogWorldComponent : IEventLog, IWorldComponent
     {
+        private List<IGridEvent> _events = new();
+        private bool _isDisposed = false;
         public IEnumerable<IGridEvent> AllEvents => _events;
         public bool AllowLog { get; }
-        private List<IGridEvent> _events = new();
 
         public EventLogWorldComponent(bool allowLog = true)
         {
@@ -36,11 +37,13 @@ namespace Dman.GridGameTools.EventLog
         
         public IWorldComponentWriter GetWriter()
         {
+            if (_isDisposed) throw new ObjectDisposedException("EventLogWorldComponent");
             return new EventLogWriterWorldComponent(this);
         }
-        public void LogEvent(IGridEvent gridEvent)
+
+        public void Dispose()
         {
-            _events.Add(gridEvent);
+            _isDisposed = true;
         }
         
         private class EventLogWriterWorldComponent : IEventLogWriter, IWorldComponentWriter

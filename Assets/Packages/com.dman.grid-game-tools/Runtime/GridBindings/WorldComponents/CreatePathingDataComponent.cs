@@ -6,11 +6,11 @@ using WorldCreation;
 
 namespace Dman.GridGameBindings.WorldComponents
 {
-    public class CreateEventLogComponent: MonoBehaviour, ICreateDungeonComponent
+    public class CreatePathingDataComponent: MonoBehaviour, ICreateDungeonComponent
     {
         public IEnumerable<IWorldComponent> CreateComponents(WorldComponentCreationContext creationContext)
         {
-            yield return new EventLogWorldComponent(allowLog: true);
+            yield return new DungeonPathingData(creationContext.WorldBounds, playerPosition: Vector3Int.zero);
         }
     }
 }
