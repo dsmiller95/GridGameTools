@@ -1,13 +1,16 @@
-using GridRandom;
+using Dman.GridGameTools.Random;
 using UnityEngine;
 
-public interface IDungeonToWorldContext: IGridSpace
+namespace Dman.GridGameBindings
 {
-    //public (Vector3 pos, Quaternion rot) GetPosRot(DungeonCoordinate coordinate);
-    //public DungeonCoordinate GuessFromPosRot(Vector3 pos, Quaternion rot);
-    public Transform EntityParent { get; }
-    /// <summary>
-    /// Rng used to seed the rng seeds of all spawned entities
-    /// </summary>
-    public GridRandomGen SpawningRng { get; }
+    public interface IDungeonToWorldContext: IGridSpace
+    {
+        //public (Vector3 pos, Quaternion rot) GetPosRot(DungeonCoordinate coordinate);
+        //public DungeonCoordinate GuessFromPosRot(Vector3 pos, Quaternion rot);
+        public Transform EntityParent { get; }
+        /// <summary>
+        /// Rng used to seed the rng seeds of all spawned entities
+        /// </summary>
+        public GridRandomGen SpawningRng { get; }
+    }
 }

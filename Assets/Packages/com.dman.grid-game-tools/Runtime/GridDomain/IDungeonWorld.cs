@@ -1,53 +1,58 @@
 using System;
 using System.Collections.Generic;
-using Dman.GridGameTools;
+using Dman.GridGameTools.Commands;
+using Dman.GridGameTools.Entities;
+using Dman.GridGameTools.PathingData;
 
-/// <summary>
-/// A read only state of the world. can create new world states via Copy-On-Write mechanisms.
-/// </summary>
-public interface IDungeonWorld: IDisposable
+namespace Dman.GridGameTools
 {
     /// <summary>
-    /// a constant seed for this world. never changes.
+    /// A read only state of the world. can create new world states via Copy-On-Write mechanisms.
     /// </summary>
-    public uint WorldRngSeed { get; }
-
-    public DungeonBounds Bounds => PathingData.Bounds;
-
-    public (IDungeonWorld newWorld, IEnumerable<IDungeonCommand> executedCommands)
-        ApplyCommandsWithModifiedCommands(IEnumerable<IDungeonCommand> commands);
-
-    public IDungeonPathingDataBaked PathingData => this.Components.AssertGet<IDungeonPathingDataBaked>();
-
-    public ICachingEntityStore EntityStore { get; }
-    public IComponentStore Components { get; }
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="commands"></param>
-    /// <param name="andDispose">When true, will dispose this world after the next world is created</param>
-    /// <returns></returns>
-    public (IDungeonWorld newWorld, IEnumerable<IDungeonCommand> executedCommands) ApplyCommandsWithModifiedCommands(
-        IEnumerable<IDungeonCommand> commands,
-        bool andDispose)
+    public interface IDungeonWorld: IDisposable
     {
-        var result = ApplyCommandsWithModifiedCommands(commands);
-        if (andDispose)
+        /// <summary>
+        /// a constant seed for this world. never changes.
+        /// </summary>
+        public uint WorldRngSeed { get; }
+
+        public DungeonBounds Bounds => PathingData.Bounds;
+
+        public (IDungeonWorld newWorld, IEnumerable<IDungeonCommand> executedCommands)
+            ApplyCommandsWithModifiedCommands(IEnumerable<IDungeonCommand> commands);
+
+        public IDungeonPathingDataBaked PathingData => this.Components.AssertGet<IDungeonPathingDataBaked>();
+
+        public ICachingEntityStore EntityStore { get; }
+        public IComponentStore Components { get; }
+    
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="commands"></param>
+        /// <param name="andDispose">When true, will dispose this world after the next world is created</param>
+        /// <returns></returns>
+        public (IDungeonWorld newWorld, IEnumerable<IDungeonCommand> executedCommands) ApplyCommandsWithModifiedCommands(
+            IEnumerable<IDungeonCommand> commands,
+            bool andDispose)
         {
-            Dispose();
+            var result = ApplyCommandsWithModifiedCommands(commands);
+            if (andDispose)
+            {
+                Dispose();
+            }
+            return result;
         }
-        return result;
-    }
     
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="commands"></param>
-    /// <param name="andDispose">When true, will dispose this world after the next world is created</param>
-    /// <returns></returns>
-    public IDungeonWorld ApplyCommands(IEnumerable<IDungeonCommand> commands, bool andDispose = false)
-    {
-        return ApplyCommandsWithModifiedCommands(commands, andDispose).newWorld;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="commands"></param>
+        /// <param name="andDispose">When true, will dispose this world after the next world is created</param>
+        /// <returns></returns>
+        public IDungeonWorld ApplyCommands(IEnumerable<IDungeonCommand> commands, bool andDispose = false)
+        {
+            return ApplyCommandsWithModifiedCommands(commands, andDispose).newWorld;
+        }
     }
 }

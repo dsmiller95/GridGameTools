@@ -2,188 +2,192 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Dman.GridGameTools.DataStructures;
+using Dman.GridGameTools.Entities;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Profiling;
 
-public record DungeonEntityStore : ICachingEntityStore
+namespace Dman.GridGameTools
 {
-    private IReadOnlyDictionary<EntityId, IDungeonEntity> _entities;
-    private ILookup<Vector3Int, EntityId> _mobileEntitiesInTiles;
-    private ILookup<Vector3Int, EntityId> _staticEntitiesInTiles;
-
-    public DungeonEntityStore(IReadOnlyDictionary<EntityId, IDungeonEntity> entities)
+    public record DungeonEntityStore : ICachingEntityStore
     {
-        _entities = entities;
+        private IReadOnlyDictionary<EntityId, IDungeonEntity> _entities;
+        private ILookup<Vector3Int, EntityId> _mobileEntitiesInTiles;
+        private ILookup<Vector3Int, EntityId> _staticEntitiesInTiles;
+
+        public DungeonEntityStore(IReadOnlyDictionary<EntityId, IDungeonEntity> entities)
+        {
+            _entities = entities;
         
-        _staticEntitiesInTiles = entities
-            .Where(e => e.Value.IsStatic)
-            .Select(e => (e.Value.Coordinate.Position, e.Key))
-            .ToLookup(e => e.Position, e => e.Key);
-        _mobileEntitiesInTiles = entities
-            .Where(e => !e.Value.IsStatic)
-            .Select(e => (e.Value.Coordinate.Position, e.Key))
-            .ToLookup(e => e.Position, e => e.Key);
-    }
+            _staticEntitiesInTiles = entities
+                .Where(e => e.Value.IsStatic)
+                .Select(e => (e.Value.Coordinate.Position, e.Key))
+                .ToLookup(e => e.Position, e => e.Key);
+            _mobileEntitiesInTiles = entities
+                .Where(e => !e.Value.IsStatic)
+                .Select(e => (e.Value.Coordinate.Position, e.Key))
+                .ToLookup(e => e.Position, e => e.Key);
+        }
     
     
-    private DungeonEntityStore(
-        IReadOnlyDictionary<EntityId, IDungeonEntity> entities,
-        ILookup<Vector3Int, EntityId> mobileEntitiesInTiles,
-        ILookup<Vector3Int, EntityId> staticEntitiesInTiles
+        private DungeonEntityStore(
+            IReadOnlyDictionary<EntityId, IDungeonEntity> entities,
+            ILookup<Vector3Int, EntityId> mobileEntitiesInTiles,
+            ILookup<Vector3Int, EntityId> staticEntitiesInTiles
         )
-    {
-        _entities = entities;
-        _mobileEntitiesInTiles = mobileEntitiesInTiles;
-        _staticEntitiesInTiles = staticEntitiesInTiles;
-    }
-    
-    public IEnumerable<(EntityId id, IDungeonEntity entity)> AllEntitiesWithIds()
-    {
-        return _entities.Select(e => (e.Key, e.Value));
-    }
-
-    public IDungeonEntity GetEntity(EntityId id)
-    {
-        return _entities.GetValueOrDefault(id);
-    }
-
-    public IEnumerable<EntityId> GetEntitiesAt(Vector3Int position)
-    {
-        return _mobileEntitiesInTiles[position].Concat(_staticEntitiesInTiles[position]);
-    }
-
-    public IWritableEntities CreateWriter()
-    {
-        return new WritableDungeonEntities(this);
-    }
-    
-    private class WritableDungeonEntities :
-#if DUNGEON_SAFETY_CHECKS
-        IWritableEntitiesWithWriteRecord
-#else
-        IWritableEntities
-#endif
-    {
-        private Dictionary<EntityId, IDungeonEntity> modifiedEntities;
-        private DictionaryBackedLookup<Vector3Int, EntityId> moblieEntityPositions;
-        private DungeonEntityStore underlying;
-#if DUNGEON_SAFETY_CHECKS
-        private List<EntityWriteRecord> writeOperations;
-#endif
-        
-        /// <summary>
-        /// COW style structure. null if no changes. If any changes, is a copy of the underlying lookup with changes applied.
-        /// </summary>
-        [CanBeNull] private DictionaryBackedLookup<Vector3Int, EntityId> newStaticEntities = null;
-        
-        public WritableDungeonEntities(DungeonEntityStore underlying)
         {
-            this.underlying = underlying;
-            modifiedEntities = new Dictionary<EntityId, IDungeonEntity>();
-            this.moblieEntityPositions = new DictionaryBackedLookup<Vector3Int, EntityId>(this.underlying._mobileEntitiesInTiles);
-#if DUNGEON_SAFETY_CHECKS
-            writeOperations = new List<EntityWriteRecord>();
-#endif
-            newStaticEntities = null;
+            _entities = entities;
+            _mobileEntitiesInTiles = mobileEntitiesInTiles;
+            _staticEntitiesInTiles = staticEntitiesInTiles;
         }
-
-        public ICachingEntityStore Build()
+    
+        public IEnumerable<(EntityId id, IDungeonEntity entity)> AllEntitiesWithIds()
         {
-            Profiler.BeginSample("WritableDungeonEntities.Build");
-            var result = this.BuildInternal();
-            Profiler.EndSample();
-            return result;
-        }
-
-        private DungeonEntityStore BuildInternal()
-        {
-            var newEntities = new Dictionary<EntityId, IDungeonEntity>(underlying._entities);
-            foreach (var modifiedEntity in modifiedEntities)
-            {
-                if (modifiedEntity.Value == null)
-                {
-                    newEntities.Remove(modifiedEntity.Key);
-                }
-                else
-                {
-                    newEntities[modifiedEntity.Key] = modifiedEntity.Value;
-                }
-            }
-
-            var staticEntities = newStaticEntities ?? underlying._staticEntitiesInTiles;
-
-            return new DungeonEntityStore(newEntities, this.moblieEntityPositions, staticEntities);
+            return _entities.Select(e => (e.Key, e.Value));
         }
 
         public IDungeonEntity GetEntity(EntityId id)
         {
-            if (modifiedEntities.TryGetValue(id, out IDungeonEntity entity))
-            {
-                return entity;
-            }
-            return underlying.GetEntity(id);
+            return _entities.GetValueOrDefault(id);
         }
 
         public IEnumerable<EntityId> GetEntitiesAt(Vector3Int position)
         {
-            var staticEntities = newStaticEntities ?? underlying._staticEntitiesInTiles;
-            return moblieEntityPositions[position].Concat(staticEntities[position]);
+            return _mobileEntitiesInTiles[position].Concat(_staticEntitiesInTiles[position]);
         }
 
-        public EntityWriteRecord SetEntity(EntityId id, IDungeonEntity newValue)
+        public IWritableEntities CreateWriter()
         {
-            var oldValue = this.GetEntity(id);
-            if (oldValue == newValue) return null;
-
-            if (oldValue != newValue)
+            return new WritableDungeonEntities(this);
+        }
+    
+        private class WritableDungeonEntities :
+#if DUNGEON_SAFETY_CHECKS
+        IWritableEntitiesWithWriteRecord
+#else
+            IWritableEntities
+#endif
+        {
+            private Dictionary<EntityId, IDungeonEntity> modifiedEntities;
+            private DictionaryBackedLookup<Vector3Int, EntityId> moblieEntityPositions;
+            private DungeonEntityStore underlying;
+#if DUNGEON_SAFETY_CHECKS
+        private List<EntityWriteRecord> writeOperations;
+#endif
+        
+            /// <summary>
+            /// COW style structure. null if no changes. If any changes, is a copy of the underlying lookup with changes applied.
+            /// </summary>
+            [CanBeNull] private DictionaryBackedLookup<Vector3Int, EntityId> newStaticEntities = null;
+        
+            public WritableDungeonEntities(DungeonEntityStore underlying)
             {
-                if (oldValue != null)
+                this.underlying = underlying;
+                modifiedEntities = new Dictionary<EntityId, IDungeonEntity>();
+                this.moblieEntityPositions = new DictionaryBackedLookup<Vector3Int, EntityId>(this.underlying._mobileEntitiesInTiles);
+#if DUNGEON_SAFETY_CHECKS
+            writeOperations = new List<EntityWriteRecord>();
+#endif
+                newStaticEntities = null;
+            }
+
+            public ICachingEntityStore Build()
+            {
+                Profiler.BeginSample("WritableDungeonEntities.Build");
+                var result = this.BuildInternal();
+                Profiler.EndSample();
+                return result;
+            }
+
+            private DungeonEntityStore BuildInternal()
+            {
+                var newEntities = new Dictionary<EntityId, IDungeonEntity>(underlying._entities);
+                foreach (var modifiedEntity in modifiedEntities)
                 {
-                    this.RemoveEntityPosition(oldValue, id);
+                    if (modifiedEntity.Value == null)
+                    {
+                        newEntities.Remove(modifiedEntity.Key);
+                    }
+                    else
+                    {
+                        newEntities[modifiedEntity.Key] = modifiedEntity.Value;
+                    }
                 }
-                this.AddEntityPosition(newValue, id);
+
+                var staticEntities = newStaticEntities ?? underlying._staticEntitiesInTiles;
+
+                return new DungeonEntityStore(newEntities, this.moblieEntityPositions, staticEntities);
             }
-            
-            modifiedEntities[id] = newValue;
-            var writeType = oldValue == null ? EntityWriteRecord.Change.Add : EntityWriteRecord.Change.Update;
-            var writeRecord = new EntityWriteRecord(id, oldValue, newValue, writeType);
-            AddWriteRecord(writeRecord);
-            return writeRecord;
-        }
 
-        public EntityWriteRecord CreateEntity(IDungeonEntity entity)
-        {
-            var id = EntityId.New();
-            modifiedEntities[id] = entity;
-            AddEntityPosition(entity, id);
-            var writeOperation = new EntityWriteRecord(id, null, entity, EntityWriteRecord.Change.Add);
-            AddWriteRecord(writeOperation);
-            return writeOperation;
-        }
-
-        public EntityWriteRecord RemoveEntity(EntityId id)
-        {
-            var oldValue = this.GetEntity(id);
-            if (oldValue == null) return null; // already removed, or not present
-            if (!RemoveEntityPosition(oldValue, id))
+            public IDungeonEntity GetEntity(EntityId id)
             {
-                throw new InvalidOperationException($"Entity not in position map {oldValue}");
+                if (modifiedEntities.TryGetValue(id, out IDungeonEntity entity))
+                {
+                    return entity;
+                }
+                return underlying.GetEntity(id);
             }
-            modifiedEntities[id] = null;
-            var writeOperation = new EntityWriteRecord(id, oldValue, null, EntityWriteRecord.Change.Delete); 
-            AddWriteRecord(writeOperation);
-            return writeOperation;
-        }
+
+            public IEnumerable<EntityId> GetEntitiesAt(Vector3Int position)
+            {
+                var staticEntities = newStaticEntities ?? underlying._staticEntitiesInTiles;
+                return moblieEntityPositions[position].Concat(staticEntities[position]);
+            }
+
+            public EntityWriteRecord SetEntity(EntityId id, IDungeonEntity newValue)
+            {
+                var oldValue = this.GetEntity(id);
+                if (oldValue == newValue) return null;
+
+                if (oldValue != newValue)
+                {
+                    if (oldValue != null)
+                    {
+                        this.RemoveEntityPosition(oldValue, id);
+                    }
+                    this.AddEntityPosition(newValue, id);
+                }
+            
+                modifiedEntities[id] = newValue;
+                var writeType = oldValue == null ? EntityWriteRecord.Change.Add : EntityWriteRecord.Change.Update;
+                var writeRecord = new EntityWriteRecord(id, oldValue, newValue, writeType);
+                AddWriteRecord(writeRecord);
+                return writeRecord;
+            }
+
+            public EntityWriteRecord CreateEntity(IDungeonEntity entity)
+            {
+                var id = EntityId.New();
+                modifiedEntities[id] = entity;
+                AddEntityPosition(entity, id);
+                var writeOperation = new EntityWriteRecord(id, null, entity, EntityWriteRecord.Change.Add);
+                AddWriteRecord(writeOperation);
+                return writeOperation;
+            }
+
+            public EntityWriteRecord RemoveEntity(EntityId id)
+            {
+                var oldValue = this.GetEntity(id);
+                if (oldValue == null) return null; // already removed, or not present
+                if (!RemoveEntityPosition(oldValue, id))
+                {
+                    throw new InvalidOperationException($"Entity not in position map {oldValue}");
+                }
+                modifiedEntities[id] = null;
+                var writeOperation = new EntityWriteRecord(id, oldValue, null, EntityWriteRecord.Change.Delete); 
+                AddWriteRecord(writeOperation);
+                return writeOperation;
+            }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void AddWriteRecord(EntityWriteRecord record)
-        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void AddWriteRecord(EntityWriteRecord record)
+            {
 #if DUNGEON_SAFETY_CHECKS
             writeOperations.Add(record);
 #endif
-        }
+            }
 
 #if DUNGEON_SAFETY_CHECKS
         public IEnumerable<EntityWriteRecord> WriteOperations()
@@ -192,62 +196,63 @@ public record DungeonEntityStore : ICachingEntityStore
         }
 #endif
 
-        private DictionaryBackedLookup<Vector3Int, EntityId> EnsureCopiedStaticEntities()
-        {
-            if(newStaticEntities != null) return newStaticEntities;
-            Debug.Log("Copying static entities. Should only occur once or twice.");
-            newStaticEntities = new DictionaryBackedLookup<Vector3Int, EntityId>(underlying._staticEntitiesInTiles);
-            return newStaticEntities;
-        }
+            private DictionaryBackedLookup<Vector3Int, EntityId> EnsureCopiedStaticEntities()
+            {
+                if(newStaticEntities != null) return newStaticEntities;
+                Debug.Log("Copying static entities. Should only occur once or twice.");
+                newStaticEntities = new DictionaryBackedLookup<Vector3Int, EntityId>(underlying._staticEntitiesInTiles);
+                return newStaticEntities;
+            }
         
-        private void AddEntityPosition(IDungeonEntity newEntity, EntityId id)
-        {
-            if (newEntity.IsStatic)
+            private void AddEntityPosition(IDungeonEntity newEntity, EntityId id)
             {
-                EnsureCopiedStaticEntities().Add(newEntity.Coordinate.Position, id);
+                if (newEntity.IsStatic)
+                {
+                    EnsureCopiedStaticEntities().Add(newEntity.Coordinate.Position, id);
+                }
+                else
+                {
+                    this.moblieEntityPositions.Add(newEntity.Coordinate.Position, id);
+                }
             }
-            else
+        
+            private bool RemoveEntityPosition(IDungeonEntity oldEntity, EntityId id)
             {
-                this.moblieEntityPositions.Add(newEntity.Coordinate.Position, id);
+                if (oldEntity.IsStatic)
+                {
+                    return EnsureCopiedStaticEntities().Remove(oldEntity.Coordinate.Position, id);
+                }
+                else
+                {
+                    return this.moblieEntityPositions.Remove(oldEntity.Coordinate.Position, id);
+                }
+            }
+        
+            public IEnumerable<(EntityId id, IDungeonEntity entity)> AllEntitiesWithIds()
+            {
+                Profiler.BeginSample("WritableDungeonEntities.AllEntitiesWithIds");
+                var result = this.BuildInternal().AllEntitiesWithIds();
+                Profiler.EndSample();
+                return result;
+            }
+
+            public IWritableEntities CreateWriter()
+            {
+                Debug.LogWarning("created a writer to write to an existing writer");
+                return this.Build().CreateWriter();
             }
         }
-        
-        private bool RemoveEntityPosition(IDungeonEntity oldEntity, EntityId id)
+
+        private readonly Dictionary<Type, (EntityId id, IDungeonEntity entity)?> _memoizedSinglesByType = new(); 
+        public (EntityId id, IDungeonEntity entity)? GetSingleOfType<T>()
         {
-            if (oldEntity.IsStatic)
+            if (!_memoizedSinglesByType.TryGetValue(typeof(T), out var result))
             {
-                return EnsureCopiedStaticEntities().Remove(oldEntity.Coordinate.Position, id);
+                result = AllEntitiesWithIds().SingleOrDefault(e => e.entity is T);
+                _memoizedSinglesByType[typeof(T)] = result;
             }
-            else
-            {
-                return this.moblieEntityPositions.Remove(oldEntity.Coordinate.Position, id);
-            }
-        }
-        
-        public IEnumerable<(EntityId id, IDungeonEntity entity)> AllEntitiesWithIds()
-        {
-            Profiler.BeginSample("WritableDungeonEntities.AllEntitiesWithIds");
-            var result = this.BuildInternal().AllEntitiesWithIds();
-            Profiler.EndSample();
+
             return result;
         }
-
-        public IWritableEntities CreateWriter()
-        {
-            Debug.LogWarning("created a writer to write to an existing writer");
-            return this.Build().CreateWriter();
-        }
-    }
-
-    private readonly Dictionary<Type, (EntityId id, IDungeonEntity entity)?> _memoizedSinglesByType = new(); 
-    public (EntityId id, IDungeonEntity entity)? GetSingleOfType<T>()
-    {
-        if (!_memoizedSinglesByType.TryGetValue(typeof(T), out var result))
-        {
-            result = AllEntitiesWithIds().SingleOrDefault(e => e.entity is T);
-            _memoizedSinglesByType[typeof(T)] = result;
-        }
-
-        return result;
     }
 }

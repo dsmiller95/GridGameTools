@@ -1,4 +1,6 @@
-namespace WorldCreation
+using Dman.GridGameTools;
+
+namespace Dman.GridGameBindings.WorldComponents
 {
     public class WorldComponentCreationContext
     {

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dman.GridGameTools.Entities;
+using Dman.GridGameTools.PathingData;
 using Dman.Math;
 using UnityEngine;
 

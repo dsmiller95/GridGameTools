@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Dman.GridGameTools;
 
-namespace WorldCreation
+namespace Dman.GridGameBindings.WorldComponents
 {
     public interface ICreateDungeonComponent
     {

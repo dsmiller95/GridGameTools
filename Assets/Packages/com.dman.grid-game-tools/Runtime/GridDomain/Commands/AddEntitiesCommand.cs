@@ -1,31 +1,34 @@
 using System;
 using System.Collections.Generic;
+using Dman.GridGameTools.Entities;
 using JetBrains.Annotations;
-using UnityEngine;
 
-public class AddEntitiesCommand : IDungeonCommand
+namespace Dman.GridGameTools.Commands
 {
-    private readonly IDungeonEntity[] _entities;
-    public EntityId ActionTaker => null;
-    public MovementExpectation ExpectsToCauseMovement => MovementExpectation.WillNotMove;
-    [CanBeNull] public EntityId[] AddedEntities { get; private set; }
-    public AddEntitiesCommand(params IDungeonEntity[] entities)
+    public class AddEntitiesCommand : IDungeonCommand
     {
-        _entities = entities;
-        AddedEntities = null;
-    }
-    
-    public IEnumerable<IDungeonCommand> ApplyCommand(ICommandDungeon world)
-    {
-        var addedEntities = new List<EntityId>();
-        foreach (IDungeonEntity addedEntity in _entities)
+        private readonly IDungeonEntity[] _entities;
+        public EntityId ActionTaker => null;
+        public MovementExpectation ExpectsToCauseMovement => MovementExpectation.WillNotMove;
+        [CanBeNull] public EntityId[] AddedEntities { get; private set; }
+        public AddEntitiesCommand(params IDungeonEntity[] entities)
         {
-            var id = world.CreateEntity(addedEntity);
-            addedEntities.Add(id);
+            _entities = entities;
+            AddedEntities = null;
         }
+    
+        public IEnumerable<IDungeonCommand> ApplyCommand(ICommandDungeon world)
+        {
+            var addedEntities = new List<EntityId>();
+            foreach (IDungeonEntity addedEntity in _entities)
+            {
+                var id = world.CreateEntity(addedEntity);
+                addedEntities.Add(id);
+            }
 
-        this.AddedEntities = addedEntities.ToArray();
+            this.AddedEntities = addedEntities.ToArray();
         
-        return Array.Empty<IDungeonCommand>();
+            return Array.Empty<IDungeonCommand>();
+        }
     }
 }

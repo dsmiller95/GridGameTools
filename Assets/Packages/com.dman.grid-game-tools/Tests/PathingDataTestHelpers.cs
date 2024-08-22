@@ -1,4 +1,6 @@
 using System;
+using Dman.GridGameTools;
+using Dman.GridGameTools.PathingData;
 using Dman.GridGameTools.WorldBuilding;
 using Dman.Math;
 using NUnit.Framework;

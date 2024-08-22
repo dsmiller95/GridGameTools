@@ -1,5 +1,10 @@
-public interface IBlockTile
+using Dman.GridGameTools.PathingData;
+
+namespace Dman.GridGameTools.Entities
 {
-    public FacingDirectionFlags BlockingDirections { get; }
-    public PathingLayers BlockingLayers { get; }
+    public interface IBlockTile
+    {
+        public FacingDirectionFlags BlockingDirections { get; }
+        public PathingLayers BlockingLayers { get; }
+    }
 }

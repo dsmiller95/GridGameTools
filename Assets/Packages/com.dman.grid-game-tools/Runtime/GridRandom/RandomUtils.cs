@@ -1,4 +1,4 @@
-namespace GridRandom
+namespace Dman.GridGameTools.Random
 {
     public static class RandomUtils
     {

@@ -1,3 +1,5 @@
+using Dman.GridGameTools.Entities;
+
 namespace Dman.GridGameTools
 {
     public interface IWorldHooks

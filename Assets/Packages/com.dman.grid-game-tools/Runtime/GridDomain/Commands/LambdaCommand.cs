@@ -1,20 +1,23 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
+using Dman.GridGameTools.Entities;
 
-public class LambdaCommand : IDungeonCommand
+namespace Dman.GridGameTools.Commands
 {
-    public EntityId ActionTaker => null;
-    public Action<ICommandDungeon> Lambda { get; set; }
-    public MovementExpectation ExpectsToCauseMovement => MovementExpectation.WillNotMove;
-    public LambdaCommand(Action<ICommandDungeon> lambda)
+    public class LambdaCommand : IDungeonCommand
     {
-        Lambda = lambda;
-    }
+        public EntityId ActionTaker => null;
+        public Action<ICommandDungeon> Lambda { get; set; }
+        public MovementExpectation ExpectsToCauseMovement => MovementExpectation.WillNotMove;
+        public LambdaCommand(Action<ICommandDungeon> lambda)
+        {
+            Lambda = lambda;
+        }
     
-    public IEnumerable<IDungeonCommand> ApplyCommand(ICommandDungeon world)
-    {
-        Lambda(world);
-        return Array.Empty<IDungeonCommand>();
+        public IEnumerable<IDungeonCommand> ApplyCommand(ICommandDungeon world)
+        {
+            Lambda(world);
+            return Array.Empty<IDungeonCommand>();
+        }
     }
 }

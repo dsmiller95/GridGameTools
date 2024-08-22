@@ -3,7 +3,7 @@
 using System;
 using System.Diagnostics.Contracts;
 
-namespace GridRandom
+namespace Dman.GridGameTools.Random
 {
     public struct TestGarbage
     {

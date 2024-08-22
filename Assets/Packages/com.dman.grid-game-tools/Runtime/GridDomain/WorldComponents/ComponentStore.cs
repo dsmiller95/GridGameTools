@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dman.GridGameTools.Entities;
 
 namespace Dman.GridGameTools
 {

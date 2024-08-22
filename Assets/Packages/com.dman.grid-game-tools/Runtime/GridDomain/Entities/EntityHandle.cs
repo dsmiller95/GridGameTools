@@ -1,13 +1,16 @@
-public record EntityHandle<T> where T: IDungeonEntity
+namespace Dman.GridGameTools.Entities
 {
-    public readonly EntityId Id;
-    internal EntityHandle(EntityId id)
+    public record EntityHandle<T> where T: IDungeonEntity
     {
-        Id = id;
-    }
+        public readonly EntityId Id;
+        internal EntityHandle(EntityId id)
+        {
+            Id = id;
+        }
 
-    public static implicit operator EntityId(EntityHandle<T> typedHandle)
-    {
-        return typedHandle.Id;
+        public static implicit operator EntityId(EntityHandle<T> typedHandle)
+        {
+            return typedHandle.Id;
+        }
     }
 }

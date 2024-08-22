@@ -1,5 +1,8 @@
-public enum TurnDirection
+namespace Dman.GridGameTools
 {
-    Left,
-    Right
+    public enum TurnDirection
+    {
+        Left,
+        Right
+    }
 }

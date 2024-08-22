@@ -1,13 +1,16 @@
-
 using System;
 using System.Collections.Generic;
+using Dman.GridGameTools.Entities;
 
-public class NoopCommand: IDungeonCommand
+namespace Dman.GridGameTools.Commands
 {
-    public EntityId ActionTaker => null;
-    public MovementExpectation ExpectsToCauseMovement => MovementExpectation.WillNotMove;
-    public IEnumerable<IDungeonCommand> ApplyCommand(ICommandDungeon world)
+    public class NoopCommand: IDungeonCommand
     {
-        return Array.Empty<IDungeonCommand>();
+        public EntityId ActionTaker => null;
+        public MovementExpectation ExpectsToCauseMovement => MovementExpectation.WillNotMove;
+        public IEnumerable<IDungeonCommand> ApplyCommand(ICommandDungeon world)
+        {
+            return Array.Empty<IDungeonCommand>();
+        }
     }
 }

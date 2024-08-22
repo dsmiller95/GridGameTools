@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Dman.GridGameTools.Entities;
+using UnityEngine;
 
 namespace Dman.GridGameTools.EventLog
 {

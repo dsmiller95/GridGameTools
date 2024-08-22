@@ -1,5 +1,8 @@
-public interface IDungeonUpdater
+namespace Dman.GridGameBindings
 {
-    public void AddUpdateListener(IRenderUpdate listener);
-    public void RemoveUpdateListener(IRenderUpdate listener);
+    public interface IDungeonUpdater
+    {
+        public void AddUpdateListener(IRenderUpdate listener);
+        public void RemoveUpdateListener(IRenderUpdate listener);
+    }
 }

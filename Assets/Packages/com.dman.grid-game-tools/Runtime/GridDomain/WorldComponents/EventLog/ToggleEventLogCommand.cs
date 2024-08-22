@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Dman.GridGameTools.Commands;
+using Dman.GridGameTools.Entities;
 
 namespace Dman.GridGameTools.EventLog
 {

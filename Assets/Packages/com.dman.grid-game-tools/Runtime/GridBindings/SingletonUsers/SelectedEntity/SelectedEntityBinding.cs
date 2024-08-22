@@ -1,5 +1,7 @@
 ﻿using System.Threading;
 using Cysharp.Threading.Tasks;
+using Dman.GridGameTools;
+using Dman.GridGameTools.Entities;
 using Dman.Utilities;
 using JetBrains.Annotations;
 using UnityEngine;
