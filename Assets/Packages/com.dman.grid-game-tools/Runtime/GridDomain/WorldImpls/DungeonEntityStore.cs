@@ -12,6 +12,9 @@ namespace Dman.GridGameTools
 {
     public record DungeonEntityStore : ICachingEntityStore
     {
+        /// <summary>
+        /// All entities. The entity value must not be null.
+        /// </summary>
         private IReadOnlyDictionary<EntityId, IDungeonEntity> _entities;
         private ILookup<Vector3Int, EntityId> _mobileEntitiesInTiles;
         private ILookup<Vector3Int, EntityId> _staticEntitiesInTiles;
@@ -69,9 +72,28 @@ namespace Dman.GridGameTools
             IWritableEntities
 #endif
         {
-            private Dictionary<EntityId, IDungeonEntity> modifiedEntities;
+            /// <summary>
+            /// contains all modifications to entities.
+            /// </summary>
+            /// <remarks>
+            /// if the item is null, then the entity has been removed.
+            /// Otherwise, it has been replaced/changed
+            /// </remarks>
+            [ItemCanBeNull] private Dictionary<EntityId, IDungeonEntity> modifiedEntities;
+            /// <summary>
+            /// stores the position of all mobile entities, for positional lookups
+            /// </summary>
             private DictionaryBackedLookup<Vector3Int, EntityId> moblieEntityPositions;
             private DungeonEntityStore underlying;
+            /// <summary>
+            /// The entity IDs that have been added at any point during the lifetime of this writer. <br/>
+            /// Entries in this list are guaranteed to not be in the underlying store's list of entities.
+            /// </summary>
+            /// <remarks>
+            /// used to accelerate queries. To iterate all entities, we may iterate the underlying store's list
+            /// and this list.
+            /// </remarks>
+            private List<EntityId> addedEntities;
 #if DUNGEON_SAFETY_CHECKS
         private List<EntityWriteRecord> writeOperations;
 #endif
@@ -90,6 +112,7 @@ namespace Dman.GridGameTools
             writeOperations = new List<EntityWriteRecord>();
 #endif
                 newStaticEntities = null;
+                addedEntities = new List<EntityId>();
             }
 
             public ICachingEntityStore Build()
@@ -137,6 +160,8 @@ namespace Dman.GridGameTools
 
             public EntityWriteRecord SetEntity(EntityId id, IDungeonEntity newValue)
             {
+                if(newValue == null) throw new ArgumentNullException(nameof(newValue));
+                
                 var oldValue = this.GetEntity(id);
                 if (oldValue == newValue) return null;
 
@@ -158,6 +183,8 @@ namespace Dman.GridGameTools
 
             public EntityWriteRecord CreateEntity(IDungeonEntity entity)
             {
+                if(entity == null) throw new ArgumentNullException(nameof(entity));
+                
                 var id = EntityId.New();
                 modifiedEntities[id] = entity;
                 AddEntityPosition(entity, id);
@@ -184,6 +211,10 @@ namespace Dman.GridGameTools
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private void AddWriteRecord(EntityWriteRecord record)
             {
+                if(record.ChangeType == EntityWriteRecord.Change.Add)
+                {
+                    addedEntities.Add(record.Id);
+                }
 #if DUNGEON_SAFETY_CHECKS
             writeOperations.Add(record);
 #endif
@@ -230,10 +261,18 @@ namespace Dman.GridGameTools
         
             public IEnumerable<(EntityId id, IDungeonEntity entity)> AllEntitiesWithIds()
             {
-                Profiler.BeginSample("WritableDungeonEntities.AllEntitiesWithIds");
-                var result = this.BuildInternal().AllEntitiesWithIds();
-                Profiler.EndSample();
-                return result;
+                //Profiler.BeginSample("WritableDungeonEntities.AllEntitiesWithIds");
+                foreach (var entityId in underlying._entities.Keys)
+                {
+                    yield return (entityId, GetEntity(entityId));
+                }
+                foreach (var addedEntity in addedEntities)
+                {
+                    yield return (addedEntity, GetEntity(addedEntity));
+                }
+                //var result = this.BuildInternal().AllEntitiesWithIds();
+                //Profiler.EndSample();
+                //return result;
             }
 
             public IWritableEntities CreateWriter()
