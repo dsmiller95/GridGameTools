@@ -94,6 +94,9 @@ namespace Dman.GridGameTools
             /// and this list.
             /// </remarks>
             private List<EntityId> addedEntities;
+
+            private bool _isDisposed = false;
+
 #if DUNGEON_SAFETY_CHECKS
         private List<EntityWriteRecord> writeOperations;
 #endif
@@ -112,18 +115,20 @@ namespace Dman.GridGameTools
             writeOperations = new List<EntityWriteRecord>();
 #endif
                 newStaticEntities = null;
-                addedEntities = new List<EntityId>();
+                addedEntities = Pools.EntityIdLists.Rent();
             }
 
-            public ICachingEntityStore Build()
+            public ICachingEntityStore Build(bool andDispose)
             {
+                if(_isDisposed) throw new ObjectDisposedException("WritableDungeonEntities");
+                
                 Profiler.BeginSample("WritableDungeonEntities.Build");
-                var result = this.BuildInternal();
+                var result = this.BuildInternal(andDispose);
                 Profiler.EndSample();
                 return result;
             }
 
-            private DungeonEntityStore BuildInternal()
+            private DungeonEntityStore BuildInternal(bool andDispose)
             {
                 var newEntities = new Dictionary<EntityId, IDungeonEntity>(underlying._entities);
                 foreach (var modifiedEntity in modifiedEntities)
@@ -140,11 +145,17 @@ namespace Dman.GridGameTools
 
                 var staticEntities = newStaticEntities ?? underlying._staticEntitiesInTiles;
 
+                if (andDispose)
+                {
+                    this.Dispose();
+                }
+
                 return new DungeonEntityStore(newEntities, this.moblieEntityPositions, staticEntities);
             }
 
             public IDungeonEntity GetEntity(EntityId id)
             {
+                if(_isDisposed) throw new ObjectDisposedException("WritableDungeonEntities");
                 if (modifiedEntities.TryGetValue(id, out IDungeonEntity entity))
                 {
                     return entity;
@@ -154,6 +165,7 @@ namespace Dman.GridGameTools
 
             public IEnumerable<EntityId> GetEntitiesAt(Vector3Int position)
             {
+                if(_isDisposed) throw new ObjectDisposedException("WritableDungeonEntities");
                 var staticEntities = newStaticEntities ?? underlying._staticEntitiesInTiles;
                 return moblieEntityPositions[position].Concat(staticEntities[position]);
             }
@@ -161,6 +173,7 @@ namespace Dman.GridGameTools
             public EntityWriteRecord SetEntity(EntityId id, IDungeonEntity newValue)
             {
                 if(newValue == null) throw new ArgumentNullException(nameof(newValue));
+                if(_isDisposed) throw new ObjectDisposedException("WritableDungeonEntities");
                 
                 var oldValue = this.GetEntity(id);
                 if (oldValue == newValue) return null;
@@ -178,23 +191,27 @@ namespace Dman.GridGameTools
                 var writeType = oldValue == null ? EntityWriteRecord.Change.Add : EntityWriteRecord.Change.Update;
                 var writeRecord = new EntityWriteRecord(id, oldValue, newValue, writeType);
                 AddWriteRecord(writeRecord);
+                if(writeType == EntityWriteRecord.Change.Add) addedEntities.Add(id);
                 return writeRecord;
             }
 
             public EntityWriteRecord CreateEntity(IDungeonEntity entity)
             {
                 if(entity == null) throw new ArgumentNullException(nameof(entity));
+                if(_isDisposed) throw new ObjectDisposedException("WritableDungeonEntities");
                 
                 var id = EntityId.New();
                 modifiedEntities[id] = entity;
                 AddEntityPosition(entity, id);
                 var writeOperation = new EntityWriteRecord(id, null, entity, EntityWriteRecord.Change.Add);
                 AddWriteRecord(writeOperation);
+                addedEntities.Add(id);
                 return writeOperation;
             }
 
             public EntityWriteRecord RemoveEntity(EntityId id)
             {
+                if(_isDisposed) throw new ObjectDisposedException("WritableDungeonEntities");
                 var oldValue = this.GetEntity(id);
                 if (oldValue == null) return null; // already removed, or not present
                 if (!RemoveEntityPosition(oldValue, id))
@@ -207,14 +224,34 @@ namespace Dman.GridGameTools
                 return writeOperation;
             }
 
+            public IEnumerable<(EntityId id, IDungeonEntity entity)> AllEntitiesWithIds()
+            {
+                if(_isDisposed) throw new ObjectDisposedException("WritableDungeonEntities");
+                //Profiler.BeginSample("WritableDungeonEntities.AllEntitiesWithIds");
+                foreach (var entityId in underlying._entities.Keys)
+                {
+                    yield return (entityId, GetEntity(entityId));
+                }
+                foreach (var addedEntity in addedEntities)
+                {
+                    yield return (addedEntity, GetEntity(addedEntity));
+                }
+                //var result = this.BuildInternal().AllEntitiesWithIds();
+                //Profiler.EndSample();
+                //return result;
+            }
+
+            public IWritableEntities CreateWriter()
+            {
+                if(_isDisposed) throw new ObjectDisposedException("WritableDungeonEntities");
+                Debug.LogWarning("created a writer to write to an existing writer");
+                return this.Build(andDispose: false).CreateWriter();
+            }
+
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private void AddWriteRecord(EntityWriteRecord record)
             {
-                if(record.ChangeType == EntityWriteRecord.Change.Add)
-                {
-                    addedEntities.Add(record.Id);
-                }
 #if DUNGEON_SAFETY_CHECKS
             writeOperations.Add(record);
 #endif
@@ -259,26 +296,23 @@ namespace Dman.GridGameTools
                 }
             }
         
-            public IEnumerable<(EntityId id, IDungeonEntity entity)> AllEntitiesWithIds()
+            
+            private void ReleaseUnmanagedResources()
             {
-                //Profiler.BeginSample("WritableDungeonEntities.AllEntitiesWithIds");
-                foreach (var entityId in underlying._entities.Keys)
-                {
-                    yield return (entityId, GetEntity(entityId));
-                }
-                foreach (var addedEntity in addedEntities)
-                {
-                    yield return (addedEntity, GetEntity(addedEntity));
-                }
-                //var result = this.BuildInternal().AllEntitiesWithIds();
-                //Profiler.EndSample();
-                //return result;
+                if (_isDisposed) return;
+                _isDisposed = true;
+                Pools.EntityIdLists.Return(addedEntities);
             }
 
-            public IWritableEntities CreateWriter()
+            public void Dispose()
             {
-                Debug.LogWarning("created a writer to write to an existing writer");
-                return this.Build().CreateWriter();
+                ReleaseUnmanagedResources();
+                GC.SuppressFinalize(this);
+            }
+
+            ~WritableDungeonEntities()
+            {
+                ReleaseUnmanagedResources();
             }
         }
 

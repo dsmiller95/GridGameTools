@@ -157,9 +157,9 @@ namespace Dman.GridGameTools.Entities
         }
     }
 
-    public interface IWritableEntities : IEntityStore
+    public interface IWritableEntities : IEntityStore, IDisposable
     {
-        public ICachingEntityStore Build();
+        public ICachingEntityStore Build(bool andDispose);
         [CanBeNull] public EntityWriteRecord SetEntity(EntityId id, IDungeonEntity entity);
         [NotNull] public EntityWriteRecord CreateEntity(IDungeonEntity entity);
         [CanBeNull] public EntityWriteRecord RemoveEntity(EntityId id);

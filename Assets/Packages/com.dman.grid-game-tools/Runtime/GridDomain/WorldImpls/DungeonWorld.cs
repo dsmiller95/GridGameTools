@@ -123,8 +123,7 @@ namespace Dman.GridGameTools
             public IDungeonWorld PreviousWorldState => world;
             public IComponentStore WritableComponentStore => writingStore;
 
-            public WritableDungeonWorld(
-                DungeonWorld world)
+            public WritableDungeonWorld(DungeonWorld world)
             {
                 this.world = world;
                 writableEntities = world.EntityStore.CreateWriter();
@@ -165,7 +164,7 @@ namespace Dman.GridGameTools
             private IDungeonWorld ApplyWriteModificationsTo(DungeonWorld toBaseWorld, bool disposeInternals)
             {
                 Profiler.BeginSample("ApplyWriteModifications_WithPathing");
-                var newStore = this.writableEntities.Build();
+                var newStore = this.writableEntities.Build(andDispose: disposeInternals);
                 var newComponents = this.writingStore.BakeImmutable(andDispose: disposeInternals);
         
                 Profiler.EndSample();
