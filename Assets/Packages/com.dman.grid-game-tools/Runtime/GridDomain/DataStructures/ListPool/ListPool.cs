@@ -30,13 +30,11 @@ namespace Dman.GridGameTools.DataStructures
             {
                 var lastIndex = _itemsInPool.Count - 1;
                 var item = _itemsInPool[lastIndex];
-                Debug.Log($"LISTPOOL RENT {item.Capacity}");
                 _itemsInPool.RemoveAt(lastIndex);
                 return item;
             }
             
             var created = new List<T>(_initialCapacity);
-            Debug.Log($"LISTPOOL CREATE {_initialCapacity}");
             return created;
         }
     
@@ -44,7 +42,7 @@ namespace Dman.GridGameTools.DataStructures
         {
             item.Clear();
             _itemsInPool.Add(item);
-            _itemsInPool.Sort(_capacityComparer);
+            //_itemsInPool.Sort(_capacityComparer);
         }
 
         private class ListCapacityComparer : IComparer<List<T>>
