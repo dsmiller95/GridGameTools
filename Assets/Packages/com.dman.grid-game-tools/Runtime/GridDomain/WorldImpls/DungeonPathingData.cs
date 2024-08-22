@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dman.GridGameTools;
 using UnityEngine;
 using UnityEngine.Profiling;
 
-public record DungeonPathingData : IDungeonBakedPathingData
+public record DungeonPathingData : IDungeonPathingDataBaked, IWorldComponent
 {
     public DungeonBounds Bounds { get; }
     private PooledArray3D<BlockedTileLayers> BlockedFaces { get; set; }
@@ -48,13 +49,18 @@ public record DungeonPathingData : IDungeonBakedPathingData
     {
         return new DungeonPathingDataWriter(this);
     }
+
+    public IWorldComponentWriter GetWriter()
+    {
+        throw new NotImplementedException();
+    }
     
     public void Dispose()
     {
         BlockedFaces.Dispose();
     }
 
-    private class DungeonPathingDataWriter : IDungeonPathingDataWriter
+    private class DungeonPathingDataWriter : IDungeonPathingDataWriter, IWorldComponentWriterWithHooks
     {
         public DungeonBounds Bounds { get; }
 
@@ -119,12 +125,23 @@ public record DungeonPathingData : IDungeonBakedPathingData
             // return this.BuildAndDispose().CreateWriter();
         }
         
+
+        IWorldComponent IWorldComponentWriter.BakeImmutable(bool andDispose)
+        {
+            return BakeImmutableInternal(andDispose);
+        }
+        
         private bool _isDisposed = false;
-        public IDungeonBakedPathingData BakeImmutable(bool andDispose)
+        public IDungeonPathingDataBaked BakeImmutable(bool andDispose)
+        {
+            return BakeImmutableInternal(andDispose);
+        }
+
+        private DungeonPathingData BakeImmutableInternal(bool andDisposeInternals)
         {
             if(_isDisposed) throw new ObjectDisposedException("DungeonPathingDataWriter");
             PooledArray3D<BlockedTileLayers> facesToBuildWith;
-            if (andDispose)
+            if (andDisposeInternals)
             {
                 // mark as disposed, we are "releasing" the blocked faces memory, into the newly baked object
                 _isDisposed = true;

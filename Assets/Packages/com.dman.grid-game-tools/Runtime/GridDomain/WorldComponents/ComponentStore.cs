@@ -68,9 +68,9 @@ namespace Dman.GridGameTools
                 return readOnly;
             }
 
-            public IComponentStore BakeImmutable()
+            public IComponentStore BakeImmutable(bool andDispose)
             {
-                var immutables = _componentWriters.Select(x => x.BakeImmutable());
+                var immutables = _componentWriters.Select(x => x.BakeImmutable(andDispose));
                 var allComponents = immutables.Concat(_readOnlyComponents);
                 return new ComponentStore(allComponents);
             }

@@ -12,10 +12,10 @@ public record DungeonWorld : IDungeonWorld
     public uint WorldRngSeed => _seed;
     public DungeonBounds Bounds { get; }
     
-    public IDungeonBakedPathingData PathingData { get; private set; }
+    public IDungeonPathingDataBaked PathingData { get; private set; }
     public ICachingEntityStore EntityStore { get; private set; }
     public IComponentStore Components { get; private set; }
-    private DungeonWorld(IDungeonBakedPathingData pathing, ICachingEntityStore entities, IComponentStore components, uint seed = 0)
+    private DungeonWorld(IDungeonPathingDataBaked pathing, ICachingEntityStore entities, IComponentStore components, uint seed = 0)
     {
         Bounds = pathing.Bounds;
         PathingData = pathing;
@@ -171,7 +171,7 @@ public record DungeonWorld : IDungeonWorld
             Profiler.BeginSample("ApplyWriteModifications_WithPathing");
             var newStore = this.writableEntities.Build();
             var newPathingData = this.writablePathingData.BakeImmutable(andDispose: disposeInternals);
-            var newComponents = this.writingStore.BakeImmutable();
+            var newComponents = this.writingStore.BakeImmutable(andDispose: disposeInternals);
         
 #if DUNGEON_SAFETY_CHECKS // only do this check in editor, it is very expensive.
             var withWriteRecord = this.writableEntities as IWritableEntitiesWithWriteRecord;

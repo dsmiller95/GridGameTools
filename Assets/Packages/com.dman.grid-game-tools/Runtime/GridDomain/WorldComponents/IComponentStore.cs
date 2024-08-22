@@ -19,6 +19,6 @@ namespace Dman.GridGameTools
     }
     public interface IWritingComponentStore : IComponentStore, IWorldHooks
     {
-        public IComponentStore BakeImmutable();
+        public IComponentStore BakeImmutable(bool andDispose);
     }
 }

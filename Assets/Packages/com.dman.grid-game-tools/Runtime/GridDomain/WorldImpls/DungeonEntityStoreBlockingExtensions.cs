@@ -24,7 +24,7 @@ public static class DungeonEntityStoreBlockingExtensions
         return blocked;
     }
 
-    public static IDungeonBakedPathingData ApplyWriteRecord(
+    public static IDungeonPathingDataBaked ApplyWriteRecord(
         this IDungeonPathingData existingPathing,
         IEntityStore newStore,
         IEnumerable<EntityWriteRecord> writeRecords)

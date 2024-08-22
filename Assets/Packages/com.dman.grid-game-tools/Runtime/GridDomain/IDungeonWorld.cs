@@ -15,7 +15,7 @@ public interface IDungeonWorld: IDisposable
 
     public (IDungeonWorld newWorld, IEnumerable<IDungeonCommand> executedCommands)
         ApplyCommandsWithModifiedCommands(IEnumerable<IDungeonCommand> commands);
-    public IDungeonBakedPathingData PathingData { get; }
+    public IDungeonPathingDataBaked PathingData { get; }
 
     public ICachingEntityStore EntityStore { get; }
     public IComponentStore Components { get; }

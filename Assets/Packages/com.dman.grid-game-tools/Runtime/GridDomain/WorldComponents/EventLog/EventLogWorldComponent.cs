@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 
@@ -42,23 +43,23 @@ namespace Dman.GridGameTools.EventLog
             _events.Add(gridEvent);
         }
         
-        public class EventLogWriterWorldComponent : IEventLogWriter, IWorldComponentWriter
+        private class EventLogWriterWorldComponent : IEventLogWriter, IWorldComponentWriter
         {
             private readonly EventLogWorldComponent _baseEventLog;
-            private bool didFlushHistory = false;
+            private bool _didFlushHistory = false;
+            private List<IGridEvent> _addedEvents;
+            private bool _isDisposed;
+            public bool AllowLog { get; private set; }
+            
             public IEnumerable<IGridEvent> AllEvents
             {
                 get
                 {
-                    if (didFlushHistory) return _addedEvents;
+                    if (_didFlushHistory) return _addedEvents;
                     
                     return _baseEventLog.AllEvents.Concat(_addedEvents);
                 }
             }
-
-            public bool AllowLog { get; private set; }
-
-            private List<IGridEvent> _addedEvents;
 
             public EventLogWriterWorldComponent(EventLogWorldComponent baseEventLog)
             {
@@ -69,24 +70,35 @@ namespace Dman.GridGameTools.EventLog
 
             public void LogEvent(IGridEvent gridEvent)
             {
+                if (_isDisposed) throw new ObjectDisposedException("EventLogWriterWorldComponent");
                 if (!AllowLog || gridEvent == null) return;
                 _addedEvents.Add(gridEvent);
             }
 
             public void FlushEventLog()
             {
-                didFlushHistory = true;
+                if (_isDisposed) throw new ObjectDisposedException("EventLogWriterWorldComponent");
+                _didFlushHistory = true;
                 _addedEvents.Clear();
             }
 
             public void SetAllowLog(bool allowWrites)
             {
+                if (_isDisposed) throw new ObjectDisposedException("EventLogWriterWorldComponent");
                 AllowLog = allowWrites;
             }
 
-            public IWorldComponent BakeImmutable()
+            public IWorldComponent BakeImmutable(bool andDispose)
             {
+                if (_isDisposed) throw new ObjectDisposedException("EventLogWriterWorldComponent");
+                if (andDispose) _isDisposed = true;
                 return new EventLogWorldComponent(AllEvents, AllowLog);
+            }
+
+            public void Dispose()
+            {
+                _isDisposed = true;
+                _addedEvents = null;
             }
         }
     }

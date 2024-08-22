@@ -15,10 +15,6 @@ public interface IDungeonPathfinding
         PathingLayers internalLayer = PathingLayers.None);
 }
 
-public interface IDungeonBakedPathingData : IDungeonPathingData
-{
-    
-}
 
 public interface IDungeonPathingData: IDisposable
 {
@@ -170,6 +166,12 @@ public interface IDungeonPathingData: IDisposable
     }
 }
 
+
+public interface IDungeonPathingDataBaked : IDungeonPathingData
+{
+    
+}
+
 /// <summary>
 /// A writer to dungeon pathing data. Will dispose when built to a baked pathing data.
 /// </summary>
@@ -198,7 +200,7 @@ public interface IDungeonPathingDataWriter : IDungeonPathingData, IWorldHooks
     /// </summary>
     /// <param name="andDispose"></param>
     /// <returns></returns>
-    public IDungeonBakedPathingData BakeImmutable(bool andDispose = true);
+    public IDungeonPathingDataBaked BakeImmutable(bool andDispose = true);
 
     public void BuildAndDisposeAndSwap(ref IDungeonPathingData other)
     {
