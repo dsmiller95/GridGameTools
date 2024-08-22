@@ -9,6 +9,6 @@ public abstract record IDungeonEntity(DungeonCoordinate Coordinate, string Name)
     } = Coordinate;
     public abstract DungeonEntityFlags Flags { get; }
     public string Name { get; internal set; } = Name;
-    
-    public bool IsStatic => (Flags & DungeonEntityFlags.NonStatic) == 0;
+
+    public bool IsStatic => Flags.IsStatic();
 }
