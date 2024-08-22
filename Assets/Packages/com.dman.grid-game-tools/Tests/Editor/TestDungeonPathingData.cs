@@ -1,3 +1,4 @@
+using Dman.GridGameTools.PathingData;
 using NUnit.Framework;
 using UnityEngine;
 using static GridDomain.Test.PathingDataTestHelpers;

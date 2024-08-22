@@ -1,7 +1,7 @@
 using Dman.GridGameTools.DataStructures;
 using NUnit.Framework;
 
-namespace CrawlDomain.Test.DataStructures
+namespace Dman.GridGameTools.Tests.DataStructures
 {
     public class TestListPool
     {
