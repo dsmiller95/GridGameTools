@@ -78,20 +78,18 @@ namespace Dman.GridGameTools.DataStructures
         private static T[] RentArray(int fullSize)
         {
             var rented = Pool.Rent(fullSize);
-            var refId = rented.GetRefId();
-            // Debug.Log($"POOLING: RENT: {refId} SIZE: {rented.Length} Requested {fullSize}");
             return rented;
         }
+        
 
         private void ReleaseUnmanagedResources()
         {
             if (_isDisposed) return;
             _isDisposed = true;
-            // var refId = _array.GetRefId();
-            // Debug.Log($"POOLING: RETR: {refId} SIZE: {_array.Length} Requested {ArraySize(Size)}");
             Pool.Return(_array);
         }
 
+        
         public void Dispose()
         {
             ReleaseUnmanagedResources();
