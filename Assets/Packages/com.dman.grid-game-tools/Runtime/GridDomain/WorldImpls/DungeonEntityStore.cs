@@ -115,7 +115,7 @@ namespace Dman.GridGameTools
             writeOperations = new List<EntityWriteRecord>();
 #endif
                 newStaticEntities = null;
-                addedEntities = new List<EntityId>(10);// Pools.EntityIdLists.Rent();
+                addedEntities = Pools.AddedEntityLists.Rent();
             }
 
             public ICachingEntityStore Build(bool andDispose)
@@ -301,7 +301,7 @@ namespace Dman.GridGameTools
             {
                 if (_isDisposed) return;
                 _isDisposed = true;
-                Pools.EntityIdLists.Return(addedEntities);
+                Pools.AddedEntityLists.Return(addedEntities);
             }
 
             public void Dispose()
