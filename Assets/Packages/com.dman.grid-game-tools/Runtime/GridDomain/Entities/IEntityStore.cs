@@ -160,6 +160,9 @@ namespace Dman.GridGameTools.Entities
     public interface IWritableEntities : IEntityStore, IDisposable
     {
         public ICachingEntityStore Build(bool andDispose);
+        /// <param name="id"></param>
+        /// <param name="entity">cannot be null. use RemoveEntity to remove an entity.</param>
+        /// <returns></returns>
         [CanBeNull] public EntityWriteRecord SetEntity(EntityId id, IDungeonEntity entity);
         [NotNull] public EntityWriteRecord CreateEntity(IDungeonEntity entity);
         [CanBeNull] public EntityWriteRecord RemoveEntity(EntityId id);

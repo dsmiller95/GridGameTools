@@ -177,21 +177,18 @@ namespace Dman.GridGameTools
                 
                 var oldValue = this.GetEntity(id);
                 if (oldValue == newValue) return null;
+                if(oldValue == null) throw new InvalidOperationException("Cannot set an entity that does not exist");
 
                 if (oldValue != newValue)
                 {
-                    if (oldValue != null)
-                    {
-                        this.RemoveEntityPosition(oldValue, id);
-                    }
-                    this.AddEntityPosition(newValue, id);
+                    RemoveEntityPosition(oldValue, id);
+                    AddEntityPosition(newValue, id);
                 }
             
                 modifiedEntities[id] = newValue;
-                var writeType = oldValue == null ? EntityWriteRecord.Change.Add : EntityWriteRecord.Change.Update;
+                var writeType = EntityWriteRecord.Change.Update;
                 var writeRecord = new EntityWriteRecord(id, oldValue, newValue, writeType);
                 AddWriteRecord(writeRecord);
-                if(writeType == EntityWriteRecord.Change.Add) addedEntities.Add(id);
                 return writeRecord;
             }
 

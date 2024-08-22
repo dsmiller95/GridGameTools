@@ -7,6 +7,11 @@ namespace Dman.GridGameTools.Commands
     public interface ICommandDungeon
     {
         public IDungeonEntity GetEntity(EntityId id);
+        /// <summary>
+        /// Only valid if <paramref name="id"/> already exists in the world
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="entity"></param>
         public void SetEntity(EntityId id, [CanBeNull] IDungeonEntity entity);
         public EntityId CreateEntity([NotNull] IDungeonEntity entity);
         public IDungeonPathingData CurrentPathingState => this.WritableComponentStore.AssertGet<IDungeonPathingData>();
