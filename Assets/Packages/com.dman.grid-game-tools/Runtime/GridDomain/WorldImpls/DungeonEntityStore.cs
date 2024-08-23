@@ -100,11 +100,11 @@ namespace Dman.GridGameTools
 #if DUNGEON_SAFETY_CHECKS
         private List<EntityWriteRecord> writeOperations;
 #endif
-        
+
             /// <summary>
             /// COW style structure. null if no changes. If any changes, is a copy of the underlying lookup with changes applied.
             /// </summary>
-            [CanBeNull] private DictionaryBackedLookup<Vector3Int, EntityId> newStaticEntities = null;
+            [CanBeNull] private CopyOnWrite<ILookup<Vector3Int, EntityId>, DictionaryBackedLookup<Vector3Int, EntityId>> staticEntities;
         
             public WritableDungeonEntities(DungeonEntityStore underlying)
             {
@@ -114,7 +114,13 @@ namespace Dman.GridGameTools
 #if DUNGEON_SAFETY_CHECKS
             writeOperations = new List<EntityWriteRecord>();
 #endif
-                newStaticEntities = null;
+                staticEntities = new CopyOnWrite<ILookup<Vector3Int, EntityId>, DictionaryBackedLookup<Vector3Int, EntityId>>(
+                    underlying._staticEntitiesInTiles,
+                    x =>
+                    {
+                        Debug.Log("Copying static entities. Should only occur once or twice.");
+                        return new DictionaryBackedLookup<Vector3Int, EntityId>(x);
+                    });
                 addedEntities = Pools.AddedEntityLists.Rent();
             }
 
@@ -143,14 +149,12 @@ namespace Dman.GridGameTools
                     }
                 }
 
-                var staticEntities = newStaticEntities ?? underlying._staticEntitiesInTiles;
-
                 if (andDispose)
                 {
                     this.Dispose();
                 }
 
-                return new DungeonEntityStore(newEntities, this.moblieEntityPositions, staticEntities);
+                return new DungeonEntityStore(newEntities, this.moblieEntityPositions, this.staticEntities.Read);
             }
 
             public IDungeonEntity GetEntity(EntityId id)
@@ -166,8 +170,7 @@ namespace Dman.GridGameTools
             public IEnumerable<EntityId> GetEntitiesAt(Vector3Int position)
             {
                 if(_isDisposed) throw new ObjectDisposedException("WritableDungeonEntities");
-                var staticEntities = newStaticEntities ?? underlying._staticEntitiesInTiles;
-                return moblieEntityPositions[position].Concat(staticEntities[position]);
+                return moblieEntityPositions[position].Concat(staticEntities.Read[position]);
             }
 
             public EntityWriteRecord SetEntity(EntityId id, IDungeonEntity newValue)
@@ -260,20 +263,12 @@ namespace Dman.GridGameTools
             return writeOperations;
         }
 #endif
-
-            private DictionaryBackedLookup<Vector3Int, EntityId> EnsureCopiedStaticEntities()
-            {
-                if(newStaticEntities != null) return newStaticEntities;
-                Debug.Log("Copying static entities. Should only occur once or twice.");
-                newStaticEntities = new DictionaryBackedLookup<Vector3Int, EntityId>(underlying._staticEntitiesInTiles);
-                return newStaticEntities;
-            }
         
             private void AddEntityPosition(IDungeonEntity newEntity, EntityId id)
             {
                 if (newEntity.IsStatic)
                 {
-                    EnsureCopiedStaticEntities().Add(newEntity.Coordinate.Position, id);
+                    staticEntities.Write.Add(newEntity.Coordinate.Position, id);
                 }
                 else
                 {
@@ -285,7 +280,7 @@ namespace Dman.GridGameTools
             {
                 if (oldEntity.IsStatic)
                 {
-                    return EnsureCopiedStaticEntities().Remove(oldEntity.Coordinate.Position, id);
+                    return staticEntities.Write.Remove(oldEntity.Coordinate.Position, id);
                 }
                 else
                 {
