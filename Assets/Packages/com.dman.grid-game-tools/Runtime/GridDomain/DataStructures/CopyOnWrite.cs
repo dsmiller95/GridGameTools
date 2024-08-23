@@ -2,6 +2,14 @@ using System;
 
 namespace Dman.GridGameTools.DataStructures
 {
+    public static class CopyOnWriteFactory
+    {
+        public static CopyOnWrite<TRead, TWrite> Create<TRead, TWrite>(TRead sourceValue, Func<TRead, TWrite> copyFunction) where TWrite : TRead
+        {
+            return new CopyOnWrite<TRead, TWrite>(sourceValue, copyFunction);
+        }
+    }
+    
     public struct CopyOnWrite<TRead,TWrite> where TWrite : TRead
     {
         private readonly TRead _sourceValue;
@@ -9,7 +17,7 @@ namespace Dman.GridGameTools.DataStructures
         private bool _didCopy;
         private TWrite _copiedValue;
 
-        public CopyOnWrite(TRead sourceValue, Func<TRead, TWrite> copyFunction)
+        internal CopyOnWrite(TRead sourceValue, Func<TRead, TWrite> copyFunction)
         {
             _sourceValue = sourceValue;
             _copyFunction = copyFunction;
@@ -17,6 +25,7 @@ namespace Dman.GridGameTools.DataStructures
             _copiedValue = default;
         }
         
+        public bool DidCopy => _didCopy;
         public TRead Read => _didCopy ? _copiedValue : _sourceValue;
         public TWrite Write
         {
