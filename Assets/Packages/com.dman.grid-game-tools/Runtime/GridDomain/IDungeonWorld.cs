@@ -16,12 +16,14 @@ namespace Dman.GridGameTools
         /// </summary>
         public uint WorldRngSeed { get; }
 
-        public DungeonBounds Bounds => PathingData.Bounds;
+        [Obsolete("Use Components.AssertGet<IDungeonPathingDataBaked>().Bounds instead")]
+        public DungeonBounds Bounds => Components.AssertGet<IDungeonPathingDataBaked>().Bounds;
 
         public (IDungeonWorld newWorld, IEnumerable<IDungeonCommand> executedCommands)
             ApplyCommandsWithModifiedCommands(IEnumerable<IDungeonCommand> commands);
 
-        public IDungeonPathingDataBaked PathingData => this.Components.AssertGet<IDungeonPathingDataBaked>();
+        [Obsolete("Use Components.AssertGet<IDungeonPathingDataBaked>() instead")]
+        public IDungeonPathingDataBaked PathingData => Components.AssertGet<IDungeonPathingDataBaked>();
 
         public ICachingEntityStore EntityStore { get; }
         public IComponentStore Components { get; }

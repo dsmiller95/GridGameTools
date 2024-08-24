@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Dman.GridGameTools;
 using Dman.GridGameTools.Entities;
+using Dman.GridGameTools.PathingData;
 using Dman.GridGameTools.Random;
 using Dman.GridGameTools.WorldBuilding;
 using Dman.Math;
@@ -164,7 +165,8 @@ namespace GridDomain.Test
             params (object, char)[] identifiersToChars)
         {
             var charsByIdentifier = identifiersToChars.ToDictionary(x => x.Item1, x => x.Item2);
-            return ToWorldStringByQuery(buildOpts, World.Bounds, (worldPoint) =>
+            var pathingData = World.Components.AssertGet<IDungeonPathingDataBaked>();
+            return ToWorldStringByQuery(buildOpts, pathingData.Bounds, (worldPoint) =>
             {
                 var entities = World.EntityStore.GetEntityObjectsAt(worldPoint);
                 var actualCharsAtPoint = entities

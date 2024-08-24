@@ -1,3 +1,4 @@
+using System;
 using Dman.GridGameTools.Entities;
 using Dman.GridGameTools.PathingData;
 using JetBrains.Annotations;
@@ -14,6 +15,8 @@ namespace Dman.GridGameTools.Commands
         /// <param name="entity"></param>
         public void SetEntity(EntityId id, [CanBeNull] IDungeonEntity entity);
         public EntityId CreateEntity([NotNull] IDungeonEntity entity);
+        
+        [Obsolete("Use WritableComponentStore.AssertGet<IDungeonPathingDataBaked>() instead")]
         public IDungeonPathingData CurrentPathingState => this.WritableComponentStore.AssertGet<IDungeonPathingData>();
         public IEntityStore CurrentEntityState { get; }
         public IDungeonWorld PreviousWorldState { get; }
