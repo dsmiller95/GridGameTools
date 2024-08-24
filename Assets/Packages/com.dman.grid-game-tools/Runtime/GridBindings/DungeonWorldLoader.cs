@@ -23,7 +23,12 @@ namespace Dman.GridGameBindings
     {
         [SerializeField]
         private Vector3Int maxBoundsExtension = new Vector3Int(0, 2, 0);
+        
+        [Tooltip("Optional. when set, will search for game objects which are children of this gameobject.")]
+        [SerializeField] private GameObject entitiesParent; 
     
+        public Transform WorldComponentCreators => transform;
+        
         private DungeonWorldManager WorldManager => _worldManager ? _worldManager : (_worldManager = GetComponent<DungeonWorldManager>());
         private DungeonWorldManager _worldManager;
     
@@ -47,7 +52,8 @@ namespace Dman.GridGameBindings
             IDungeonUpdater updater,
             uint seed = 0)
         {
-            var allBindings = GetComponentsInChildren<IBoundToEntity>();
+            var actualParent = entitiesParent ? entitiesParent : gameObject;
+            var allBindings = actualParent.GetComponentsInChildren<IBoundToEntity>();
             var allPairs = ExtractEntityAndBindingPairs(context, allBindings);
 
             var bounds = new DungeonBounds(Vector3Int.zero, Vector3Int.one);
@@ -84,7 +90,6 @@ namespace Dman.GridGameBindings
             return newWorld;
         }
     
-        public Transform WorldComponentCreators => transform;
         private List<EntityGuessAndBinding> ExtractEntityAndBindingPairs(IDungeonToWorldContext context, IEnumerable<IBoundToEntity> allBindings)
         {
             var entitiesAndBindings = new List<EntityGuessAndBinding>();
