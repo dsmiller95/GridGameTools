@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Dman.GridGameTools;
-using Dman.GridGameTools.EventLog;
 using Dman.GridGameTools.PathingData;
 using UnityEngine;
 
