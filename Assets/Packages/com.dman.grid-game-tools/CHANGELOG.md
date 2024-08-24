@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.4.0] - 2024-08-14
+
+### Migration required
+
+- All namespaces adjusted
+- all ICreateDungeonComponent must accept a new parameter
+- add CreatePathingDataComponent to the DungeonWorldLoader, and uncheck createPathingExtraAlways in the inspector.
+- Any direct construction of dungeon worlds will not include pathfinding data by default
+- Any IWorldComponent implementations must now implement disposable interfaces,
+- Any IWorldComponentWriter must accept a `bool andDispose` parameter when baking to an immutable data store 
+- Suggested: start using IComponentStore to get pathing data
+  - previous helper methods to access pathing data have been deprecated
+
+### Added
+
+- new GridWorldBuilding package, to expose string-to-world transformations in the game code as well as test code.
+- more FacingDirection utilities
+- slightly better performance when DUNGEON_SAFETY_CHECKS is not defined
+- A way to update world components whenever an entity changes. This is useful to maintain a cache, for example.
+- Disposable inter
+
+### Changed
+
+- DungeonPathingData is now a world component
+
 ## [0.3.1] - 2024-08-13
 
 ### Added
