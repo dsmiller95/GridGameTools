@@ -18,11 +18,6 @@ namespace GridDomain.Test
     {
         public object GetIdentifyingKey(IDungeonEntity entity);
     }
-
-    public interface IWorldComponentFactory
-    {
-        public IEnumerable<IWorldComponent> GetComponents();
-    }
     
     public abstract class WorldBuildingTestBase
     {
@@ -35,22 +30,26 @@ namespace GridDomain.Test
         protected WorldBuildConfig LastUsedBuildConfig;
 
         [CanBeNull] private IEnumerable<IWorldComponent> components;
+        [CanBeNull] private IEnumerable<ICreateDungeonComponent> componentFactories;
         protected void UseWorldComponents(IEnumerable<IWorldComponent> oneTimeComponents)
         {
             components = oneTimeComponents;
+            componentFactories = null;
         }
         protected void UseWorldComponents(params IWorldComponent[] oneTimeComponents)
         {
             components = oneTimeComponents;
+            componentFactories = null;
         }
-        protected void UseWorldComponents(params IWorldComponentFactory[] componentFactories)
+        protected void UseWorldComponents(params ICreateDungeonComponent[] oneTimeComponentFactories)
         {
-            components = componentFactories.SelectMany(x => x.GetComponents()).ToList();
+            componentFactories = oneTimeComponentFactories;
+            components = null;
         }
 
-        protected void AddWorldComponents(params IWorldComponentFactory[] componentFactories)
+        protected void AddWorldComponents(params ICreateDungeonComponent[] oneTimeComponentFactories)
         {
-            components = components?.Concat(componentFactories.SelectMany(x => x.GetComponents())).ToList() ?? componentFactories.SelectMany(x => x.GetComponents()).ToList();
+            componentFactories = componentFactories?.Concat(oneTimeComponentFactories).ToList() ?? oneTimeComponentFactories.ToList();
         }
         
         protected void CreateWorld(string characterMap, params (string, Func<Vector3Int, IDungeonEntity>)[] otherFactories)
@@ -77,7 +76,9 @@ namespace GridDomain.Test
             //   S
             var usedComponents = components;
             components = null;
-            World = WorldBuilder.BuildToWorld(characterMap, seed, usedComponents);
+            var usedComponentFactories = componentFactories;
+            componentFactories = null;
+            World = WorldBuilder.BuildToWorld(characterMap, seed, usedComponents, usedComponentFactories);
         }
         protected EntityHandle<T> GetAtSingle<T>(Vector3Int position) where T: IDungeonEntity
         {

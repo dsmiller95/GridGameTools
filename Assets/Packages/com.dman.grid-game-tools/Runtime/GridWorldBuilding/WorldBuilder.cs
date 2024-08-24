@@ -43,14 +43,28 @@ namespace Dman.GridGameTools.WorldBuilding
         /// build to a world with certain values set to defaults
         /// </summary>
         /// <returns></returns>
-        public IDungeonWorld BuildToWorld(WorldBuildString characterMap, uint seed = 0, IEnumerable<IWorldComponent> components = null)
+        public IDungeonWorld BuildToWorld(WorldBuildString characterMap, uint seed = 0, 
+            IEnumerable<IWorldComponent> components = null,
+            IEnumerable<ICreateDungeonComponent> componentCreators = null)
         {
             var allEntities = Build(Vector3Int.zero, characterMap);
             var bounds = new DungeonBounds(Vector3Int.zero, characterMap.Size());
             var pathingData = new DungeonPathingData(bounds, playerPosition: Vector3Int.zero);
-            components = components?.Append(pathingData) ?? new[] {pathingData};
+            var allComponents = components?.ToList() ?? new List<IWorldComponent>(1);
+            allComponents.Add(pathingData);
+            if (componentCreators != null)
+            {
+                var creationContext = new WorldComponentCreationContext
+                {
+                    WorldBounds = bounds
+                };
+                foreach (var creator in componentCreators)
+                {
+                    allComponents.AddRange(creator.CreateComponents(creationContext));
+                }
+            }
             
-            return DungeonWorld.CreateEmpty(seed, components)
+            return DungeonWorld.CreateEmpty(seed, allComponents)
                 .AddEntities(allEntities).world;
         }
 
