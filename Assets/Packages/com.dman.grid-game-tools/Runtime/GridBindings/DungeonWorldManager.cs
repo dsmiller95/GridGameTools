@@ -54,10 +54,29 @@ namespace Dman.GridGameBindings
     
         private SortedDictionary<int, List<IRenderUpdate>> _updateListeners = new ();
         private AsyncFnOnceCell _updateCell;
+        private int _oldWorldBufferCapacity;
+        private Queue<IDungeonWorld> _lastWorldBuffer;
 
         public GridRandomGen SpawningRng { get; private set; }
         public Transform EntityParent => worldParent;
-    
+
+        public int OldWorldBufferSize => _lastWorldBuffer.Count + 1;
+        /// <summary>
+        /// how many old world states to keep around. minimum of 1.
+        /// </summary>
+        public int OldWorldBufferCapacity
+        {
+            get => _oldWorldBufferCapacity;
+            set
+            {
+                _oldWorldBufferCapacity = Mathf.Min(1, value);
+                while (_lastWorldBuffer.Count > _oldWorldBufferCapacity - 1)
+                {
+                    _lastWorldBuffer.Dequeue().Dispose();
+                }
+            }
+        }
+        
         private void Awake()
         {
             SpawningRng = new GridRandomGen(initialState.SeedOrRngIfDefault);
@@ -160,6 +179,35 @@ namespace Dman.GridGameBindings
             var newWorld = CurrentWorld.RemoveEntities(entities);
             this.UpdateWorld(newWorld, Array.Empty<IDungeonCommand>());
         }
+
+        /// <summary>
+        /// rewind to a previous world state, if possible
+        /// </summary>
+        public void RewindBack(int backwardsSteps)
+        {
+            if(!CanUpdateWorld()) throw new InvalidOperationException("Cannot update world while already updating");
+            if (backwardsSteps < 0)
+            {
+                throw new ArgumentException("Cannot rewind back a negative number of steps");
+            }
+            if (backwardsSteps == 0)
+            {
+                return;
+            }
+
+            if (backwardsSteps > OldWorldBufferCapacity)
+            {
+                throw new ArgumentException("Cannot rewind back more steps than the capacity of the buffer");
+            }
+            if (OldWorldBufferSize < backwardsSteps)
+            {
+                throw new ArgumentException("Cannot rewind back more steps than are stored in the buffer");
+            }
+            
+            var worldToRewindTo = GetOldWorld(backwardsSteps);
+            var commands = Enumerable.Empty<IDungeonCommand>();
+            this.UpdateWorld(worldToRewindTo, commands);
+        }
     
         private void UpdateWorld(IDungeonWorld newWorld, IEnumerable<IDungeonCommand> appliedCommands)
         {
@@ -172,9 +220,40 @@ namespace Dman.GridGameBindings
 
         private void AdvanceWorld(IDungeonWorld newWorld)
         {
-            this._lastWorld?.Dispose();
+            this.EnqueueOldWorld(this._lastWorld);
             this._lastWorld = CurrentWorld;
             CurrentWorld = newWorld;
+        }
+        
+        private void EnqueueOldWorld([CanBeNull] IDungeonWorld world)
+        {
+            if (world == null) return;
+            if (OldWorldBufferCapacity == 0)
+            {
+                world.Dispose();
+                return;
+            }
+            
+            _lastWorldBuffer.Enqueue(world);
+            if (_lastWorldBuffer.Count > _oldWorldBufferCapacity)
+            {
+                _lastWorldBuffer.Dequeue().Dispose();
+            }
+        }
+
+        private IDungeonWorld GetOldWorld(int backSteps)
+        {
+            if (backSteps == 1)
+            {
+                return _lastWorld;
+            }
+
+            backSteps--;
+            
+            // 1 is the last element (count - 1)
+            // 2 is the 2nd to last element (count - 2)
+            var indexIn = _lastWorldBuffer.Count - backSteps;
+            return _lastWorldBuffer.ElementAt(indexIn);
         }
     
         public Vector3 GetCenter(Vector3Int coord)
