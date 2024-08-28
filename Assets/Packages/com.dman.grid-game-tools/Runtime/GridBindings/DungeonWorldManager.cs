@@ -181,7 +181,9 @@ namespace Dman.GridGameBindings
         }
 
         /// <summary>
-        /// rewind to a previous world state, if possible
+        /// rewind to a previous world state, if possible. Rewinding will add a new world state to the buffer, without
+        /// rewinding the buffer itself. so rewinding `1` twice is NOT equivalent to rewinding `2` once. Rewinding `1` twice
+        /// will result in the same world state as before the first rewind. 
         /// </summary>
         public void RewindBack(int backwardsSteps)
         {
