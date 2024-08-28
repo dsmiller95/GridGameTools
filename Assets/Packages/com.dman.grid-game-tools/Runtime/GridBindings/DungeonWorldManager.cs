@@ -4,6 +4,7 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using Dman.GridGameTools;
 using Dman.GridGameTools.Commands;
+using Dman.GridGameTools.DataStructures;
 using Dman.GridGameTools.Entities;
 using Dman.GridGameTools.Random;
 using JetBrains.Annotations;
@@ -41,9 +42,11 @@ namespace Dman.GridGameBindings
         /// <summary>
         /// The current world state. 
         /// </summary>
-        public IDungeonWorld CurrentWorld { get; private set; }
+        public IDungeonWorld CurrentWorld => _currentWorld?.Value();
 
-        private IDungeonWorld _lastWorld;
+        private Rc<IDungeonWorld> _currentWorld;
+
+        private Rc<IDungeonWorld> _lastWorld;
     
         [SerializeField] private InitialDungeonState initialState = new InitialDungeonState();
         [SerializeField] private Transform worldParent;
@@ -51,6 +54,7 @@ namespace Dman.GridGameBindings
     
         [Header("Debug")]
         [SerializeField] public bool logTopLevelCommands = false;
+        [SerializeField] public bool logUpdateRenderOrders = false;
     
         private SortedDictionary<int, List<IRenderUpdate>> _updateListeners = new ();
         private AsyncFnOnceCell _updateCell;
@@ -58,7 +62,8 @@ namespace Dman.GridGameBindings
         public GridRandomGen SpawningRng { get; private set; }
         public Transform EntityParent => worldParent;
 
-        private Queue<IDungeonWorld> _lastWorldBuffer = new Queue<IDungeonWorld>();
+        
+        private Queue<Rc<IDungeonWorld>> _lastWorldBuffer = new Queue<Rc<IDungeonWorld>>();
         private int _lastWorldBufferCapacity = 1;
         public int OldWorldBufferSize => _lastWorldBuffer.Count + (_lastWorld == null ? 0 : 1);
         /// <summary>
@@ -109,7 +114,7 @@ namespace Dman.GridGameBindings
             {
                 initialWorld = postInit.PostInitialize(initialWorld);
             }
-            CurrentWorld = initialWorld;
+            _currentWorld = Rc.Create(initialWorld);
             TriggerWorldUpdated(new DungeonUpdateEvent(null, CurrentWorld));
         }
 
@@ -123,7 +128,7 @@ namespace Dman.GridGameBindings
             var commands = new []{command};
             LogCommands(commands);
             var (newWorld, modifiedCommands) = CurrentWorld.ApplyCommandsWithModifiedCommands(commands);
-            this.UpdateWorld(newWorld, modifiedCommands);
+            this.UpdateWorld(Rc.Create(newWorld), modifiedCommands);
         }
     
         public void ApplyCommands(IEnumerable<IDungeonCommand> allCommands, [CanBeNull] EntityId onlyApplyIfMovedPosition)
@@ -145,7 +150,7 @@ namespace Dman.GridGameBindings
                 return;
             }
         
-            this.UpdateWorld(newWorld, modifiedCommands);
+            this.UpdateWorld(Rc.Create(newWorld), modifiedCommands);
         }
     
         private void LogCommands(IEnumerable<IDungeonCommand> commands)
@@ -169,7 +174,7 @@ namespace Dman.GridGameBindings
         
             var (newWorld, addedEntities) = CurrentWorld.AddEntities(entities);
             rehydrate(newWorld, addedEntities.ToArray());
-            this.UpdateWorld(newWorld, Array.Empty<IDungeonCommand>());
+            this.UpdateWorld(Rc.Create(newWorld), Array.Empty<IDungeonCommand>());
         }
     
         public void DespawnEntities(params EntityId[] entities)
@@ -177,7 +182,7 @@ namespace Dman.GridGameBindings
             if(!CanUpdateWorld()) throw new InvalidOperationException("Cannot update world while already updating");
         
             var newWorld = CurrentWorld.RemoveEntities(entities);
-            this.UpdateWorld(newWorld, Array.Empty<IDungeonCommand>());
+            this.UpdateWorld(Rc.Create(newWorld), Array.Empty<IDungeonCommand>());
         }
 
         /// <summary>
@@ -206,7 +211,7 @@ namespace Dman.GridGameBindings
                 throw new ArgumentException("Cannot rewind back more steps than are stored in the buffer");
             }
             
-            var worldToRewindTo = GetOldWorld(backwardsSteps);
+            var worldToRewindTo = GetOldWorld(backwardsSteps).Clone();
             if (worldToRewindTo == null)
             {
                 throw new InvalidOperationException("Cannot rewind back to a null world");
@@ -215,23 +220,23 @@ namespace Dman.GridGameBindings
             this.UpdateWorld(worldToRewindTo, commands);
         }
     
-        private void UpdateWorld(IDungeonWorld newWorld, IEnumerable<IDungeonCommand> appliedCommands)
+        private void UpdateWorld(Rc<IDungeonWorld> newWorld, IEnumerable<IDungeonCommand> appliedCommands)
         {
             if(!CanUpdateWorld()) throw new InvalidOperationException("Cannot update world while already updating");
             AdvanceWorld(newWorld);
             Profiler.BeginSample("Update world");
-            TriggerWorldUpdated(new DungeonUpdateEvent(_lastWorld, newWorld, appliedCommands.ToList()));
+            TriggerWorldUpdated(new DungeonUpdateEvent(_lastWorld.Value(), newWorld.Value(), appliedCommands.ToList()));
             Profiler.EndSample();
         }
 
-        private void AdvanceWorld(IDungeonWorld newWorld)
+        private void AdvanceWorld(Rc<IDungeonWorld> newWorld)
         {
             this.EnqueueOldWorld(this._lastWorld);
-            this._lastWorld = CurrentWorld;
-            CurrentWorld = newWorld;
+            this._lastWorld = _currentWorld;
+            _currentWorld = newWorld;
         }
         
-        private void EnqueueOldWorld([CanBeNull] IDungeonWorld world)
+        private void EnqueueOldWorld([CanBeNull] Rc<IDungeonWorld> world)
         {
             if (world == null) return;
             if (OldWorldBufferCapacity == 0)
@@ -247,7 +252,7 @@ namespace Dman.GridGameBindings
             }
         }
 
-        private IDungeonWorld GetOldWorld(int backSteps)
+        private Rc<IDungeonWorld> GetOldWorld(int backSteps)
         {
             if (backSteps == 1)
             {
@@ -318,7 +323,7 @@ namespace Dman.GridGameBindings
             {
                 foreach (var kvp in _updateListeners)
                 {
-                    Debug.Log("Running update for priority " + kvp.Key);
+                    if(logUpdateRenderOrders) Debug.Log("Running update for priority " + kvp.Key);
                     var listenerBatch = kvp.Value;
                     var tasks = new UniTask[listenerBatch.Count];
                     // reverse order in case the update listeners remove themselves
