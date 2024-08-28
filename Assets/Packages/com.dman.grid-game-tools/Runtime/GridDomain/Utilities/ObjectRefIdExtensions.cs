@@ -4,7 +4,7 @@ namespace Dman.GridGameTools
     {
         public static string GetRefId<T>(this T[] obj)
         {
-            return ((uint)obj.GetHashCode()).ToString("X");
+            return ((uint)obj.GetHashCode()).ToString("X8");
         }
     }
 }

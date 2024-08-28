@@ -1,3 +1,5 @@
+using System;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace Dman.GridGameTools.DataStructures
@@ -59,7 +61,20 @@ namespace Dman.GridGameTools.DataStructures
             if(_logLevel == LogLevel.None) return;
             
             var refId = created.GetRefId();
-            Debug.Log($"POOLING: CREATED {refId} SIZE: {created.Length:000000} REQUESTED: {requestedLength:000000}");
+            var typeName = typeof(T).FullName;
+            
+            int elementSize;
+            if (typeof(T).IsValueType)
+            {
+                elementSize = Marshal.SizeOf(typeof(T));
+            }
+            else
+            {
+                elementSize = IntPtr.Size;
+            }
+            var bytes = elementSize * created.Length;
+            
+            Debug.Log($"POOLING: CREATED {refId} LEN: {created.Length:000_000} REQUESTED: {requestedLength:000_000} SIZE_B: {bytes:0_000_000_000} T: {typeName}");
         }
         
         private void LogRented(T[] rented, int requestedLength)
@@ -67,7 +82,7 @@ namespace Dman.GridGameTools.DataStructures
             if(_logLevel != LogLevel.AllLifeCycle) return;
             
             var refId = rented.GetRefId();
-            Debug.Log($"POOLING: RENTED  {refId} SIZE: {rented.Length:000000} REQUESTED: {requestedLength:000000}");
+            Debug.Log($"POOLING: RENTED  {refId} LEN: {rented.Length:000000} REQUESTED: {requestedLength:000000}");
         }
 
         private void LogReturned(T[] returned)
@@ -75,7 +90,7 @@ namespace Dman.GridGameTools.DataStructures
             if(_logLevel != LogLevel.AllLifeCycle) return;
             
             var refId = returned.GetRefId();
-            Debug.Log($"POOLING: RETURN  {refId} SIZE: {returned.Length:000000}");
+            Debug.Log($"POOLING: RETURN  {refId} LEN: {returned.Length:000000}");
         }
     }
 }
