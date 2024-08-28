@@ -54,23 +54,23 @@ namespace Dman.GridGameBindings
     
         private SortedDictionary<int, List<IRenderUpdate>> _updateListeners = new ();
         private AsyncFnOnceCell _updateCell;
-        private int _oldWorldBufferCapacity;
-        private Queue<IDungeonWorld> _lastWorldBuffer;
 
         public GridRandomGen SpawningRng { get; private set; }
         public Transform EntityParent => worldParent;
 
-        public int OldWorldBufferSize => _lastWorldBuffer.Count + 1;
+        private Queue<IDungeonWorld> _lastWorldBuffer = new Queue<IDungeonWorld>();
+        private int _lastWorldBufferCapacity = 1;
+        public int OldWorldBufferSize => _lastWorldBuffer.Count + (_lastWorld == null ? 0 : 1);
         /// <summary>
         /// how many old world states to keep around. minimum of 1.
         /// </summary>
         public int OldWorldBufferCapacity
         {
-            get => _oldWorldBufferCapacity;
+            get => _lastWorldBufferCapacity;
             set
             {
-                _oldWorldBufferCapacity = Mathf.Min(1, value);
-                while (_lastWorldBuffer.Count > _oldWorldBufferCapacity - 1)
+                _lastWorldBufferCapacity = Mathf.Min(1, value);
+                while (_lastWorldBuffer.Count > _lastWorldBufferCapacity - 1)
                 {
                     _lastWorldBuffer.Dequeue().Dispose();
                 }
@@ -207,6 +207,10 @@ namespace Dman.GridGameBindings
             }
             
             var worldToRewindTo = GetOldWorld(backwardsSteps);
+            if (worldToRewindTo == null)
+            {
+                throw new InvalidOperationException("Cannot rewind back to a null world");
+            }
             var commands = Enumerable.Empty<IDungeonCommand>();
             this.UpdateWorld(worldToRewindTo, commands);
         }
@@ -237,7 +241,7 @@ namespace Dman.GridGameBindings
             }
             
             _lastWorldBuffer.Enqueue(world);
-            if (_lastWorldBuffer.Count > _oldWorldBufferCapacity)
+            if (_lastWorldBuffer.Count > _lastWorldBufferCapacity)
             {
                 _lastWorldBuffer.Dequeue().Dispose();
             }
