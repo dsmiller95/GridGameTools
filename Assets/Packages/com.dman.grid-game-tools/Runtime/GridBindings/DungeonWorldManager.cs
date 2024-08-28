@@ -42,9 +42,9 @@ namespace Dman.GridGameBindings
         /// <summary>
         /// The current world state. 
         /// </summary>
-        public IDungeonWorld CurrentWorld => _currentWorld?.Value();
+        public IDungeonWorld CurrentWorld => _currentWorld.Value;
 
-        private Rc<IDungeonWorld> _currentWorld;
+        private Rc<IDungeonWorld> _currentWorld = Rc.Create<IDungeonWorld>(null);
 
         private Rc<IDungeonWorld> _lastWorld;
     
@@ -65,7 +65,7 @@ namespace Dman.GridGameBindings
         
         private Queue<Rc<IDungeonWorld>> _lastWorldBuffer = new Queue<Rc<IDungeonWorld>>();
         private int _lastWorldBufferCapacity = 1;
-        public int OldWorldBufferSize => _lastWorldBuffer.Count + (_lastWorld == null ? 0 : 1);
+        public int OldWorldBufferSize => _lastWorldBuffer.Count + (_lastWorld.Value == null ? 0 : 1);
         /// <summary>
         /// how many old world states to keep around. minimum of 1.
         /// </summary>
@@ -212,7 +212,7 @@ namespace Dman.GridGameBindings
             }
             
             var worldToRewindTo = GetOldWorld(backwardsSteps).Clone();
-            if (worldToRewindTo == null)
+            if (worldToRewindTo.Value == null)
             {
                 throw new InvalidOperationException("Cannot rewind back to a null world");
             }
@@ -225,7 +225,7 @@ namespace Dman.GridGameBindings
             if(!CanUpdateWorld()) throw new InvalidOperationException("Cannot update world while already updating");
             AdvanceWorld(newWorld);
             Profiler.BeginSample("Update world");
-            TriggerWorldUpdated(new DungeonUpdateEvent(_lastWorld.Value(), newWorld.Value(), appliedCommands.ToList()));
+            TriggerWorldUpdated(new DungeonUpdateEvent(_lastWorld.Value, newWorld.Value, appliedCommands.ToList()));
             Profiler.EndSample();
         }
 
@@ -236,9 +236,9 @@ namespace Dman.GridGameBindings
             _currentWorld = newWorld;
         }
         
-        private void EnqueueOldWorld([CanBeNull] Rc<IDungeonWorld> world)
+        private void EnqueueOldWorld(Rc<IDungeonWorld> world)
         {
-            if (world == null) return;
+            if (world.Value == null) return;
             if (OldWorldBufferCapacity == 0)
             {
                 world.Dispose();

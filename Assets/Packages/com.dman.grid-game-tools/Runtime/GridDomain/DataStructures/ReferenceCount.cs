@@ -15,12 +15,15 @@ namespace Dman.GridGameTools.DataStructures
     /// A class which wraps a disposable, and only disposes the internal resource
     /// when all Rc's pointing to it are disposed.
     /// </summary>
+    /// <remarks>
+    /// It is the responsibility of users to ensure that Dispose is called exactly once for each Rc made via Create or Clone. 
+    /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class Rc<T> : IDisposable where T: IDisposable
+    public readonly struct Rc<T> : IDisposable where T: IDisposable
     {
-        private T _value;
-        private RcCounter _counter;
-        private bool _isDisposed = false;
+        private readonly T _value;
+        private readonly RcCounter _counter;
+        public T Value => _value;
         
         internal Rc(T value)
         {
@@ -33,29 +36,18 @@ namespace Dman.GridGameTools.DataStructures
 
         private Rc(T value, RcCounter counter)
         {
-            this._value = value;
-            this._counter = counter;
+            _value = value;
+            _counter = counter;
         }
 
         public Rc<T> Clone()
         {
             _counter.Count++;
-            return new Rc<T>(this._value, this._counter);
-        }
-
-        public T Value()
-        {
-            if(this._isDisposed) throw new ObjectDisposedException("Rc");
-            return _value;
+            return new Rc<T>(_value, _counter);
         }
         
         public void Dispose()
         {
-            if(_isDisposed)
-            {
-                return;
-            }
-            _isDisposed = true;
             _counter.Count--;
             if (_counter.Count < 0)
             {
