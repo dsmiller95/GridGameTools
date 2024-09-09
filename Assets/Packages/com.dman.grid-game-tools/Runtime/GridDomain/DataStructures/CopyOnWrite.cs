@@ -55,7 +55,7 @@ namespace Dman.GridGameTools.DataStructures
         /// Takes a copy of the current value, without making any changes to the value stored in this object.
         /// </summary>
         /// <returns></returns>
-        public TRead TakeCopy()
+        public TWrite TakeCopy()
         {
             return _copyFunction(this.Read);
         }
