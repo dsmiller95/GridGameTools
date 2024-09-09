@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using Dman.GridGameTools;
 using Dman.GridGameTools.Entities;
 using Dman.Utilities;
+using Dman.Utilities.Logger;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -49,7 +50,13 @@ namespace Dman.GridGameBindings.SelectedEntity
         {
             await UniTask.NextFrame(cancel);
 
-            var newEntity = update.NewWorld.EntityStore.GetEntity(Select.SelectedEntity);
+            if (Select.SelectedEntity == null)
+            {
+                Log.Warning("Selected entity is null", this);
+            }
+
+            var id = Select.SelectedEntity;
+            var newEntity = id == null ? null : update.NewWorld.EntityStore.GetEntity(id);
             if (newEntity != null)
             {
                 PreviousWorld = update.OldWorld;
@@ -58,8 +65,8 @@ namespace Dman.GridGameBindings.SelectedEntity
             else
             {
                 PreviousWorld = null;
-                newEntity = update.OldWorld?.EntityStore.GetEntity(Select.SelectedEntity);
                 AgainstWorld = update.OldWorld;
+                newEntity = id == null ? null : update.OldWorld?.EntityStore.GetEntity(id);
             }
             this.SelectedEntityChanged(newEntity, false);
             if(KeepWorldUpdatePending) await UniTask.WaitUntil(() => KeepWorldUpdatePending == false, cancellationToken: cancel);
