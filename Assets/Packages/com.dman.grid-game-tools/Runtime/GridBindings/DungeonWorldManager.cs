@@ -49,8 +49,12 @@ namespace Dman.GridGameBindings
         private Rc<IDungeonWorld> _lastWorld;
     
         [SerializeField] private InitialDungeonState initialState = new InitialDungeonState();
+        [Tooltip("Used when we want to spawn something into the world. it gets spawned as a child of this object.")]
         [SerializeField] private Transform worldParent;
         [SerializeField] public UnityEvent onAllRenderUpdatesComplete;
+        
+        [Tooltip("When set, will swap the Y and Z axes internally. Useful when using unity 2D coordinates")]
+        [SerializeField] public bool swapYAndZ = false;
     
         [Header("Debug")]
         [SerializeField] public bool logTopLevelCommands = false;
@@ -269,10 +273,19 @@ namespace Dman.GridGameBindings
     
         public Vector3 GetCenter(Vector3Int coord)
         {
+            if (swapYAndZ)
+            {
+                return new Vector3(coord.x, coord.z, coord.y);
+            }
+
             return new Vector3(coord.x, coord.y, coord.z);
         }
         public Vector3Int GetClosestToCenter(Vector3 pos)
         {
+            if (swapYAndZ)
+            {
+                return new Vector3Int(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.z), Mathf.RoundToInt(pos.y));
+            }
             return new Vector3Int(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z));
         }
 
