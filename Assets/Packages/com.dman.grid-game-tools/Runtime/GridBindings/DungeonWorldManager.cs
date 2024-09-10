@@ -11,6 +11,7 @@ using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Profiling;
+using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 namespace Dman.GridGameBindings
@@ -53,8 +54,9 @@ namespace Dman.GridGameBindings
         [SerializeField] private Transform worldParent;
         [SerializeField] public UnityEvent onAllRenderUpdatesComplete;
         
-        [Tooltip("When set, will swap the Y and Z axes internally. Useful when using unity 2D coordinates")]
-        [SerializeField] public bool swapYAndZ = false;
+        [FormerlySerializedAs("swapYAndZ")]
+        [Tooltip("When set, will swap the Y and Z axes internally and invert the Z axis. matches unity's 2D layout. -z becomes Up, +z becomes Down")]
+        [SerializeField] public bool useUnity2DAxises = false;
     
         [Header("Debug")]
         [SerializeField] public bool logTopLevelCommands = false;
@@ -273,18 +275,18 @@ namespace Dman.GridGameBindings
     
         public Vector3 GetCenter(Vector3Int coord)
         {
-            if (swapYAndZ)
+            if (useUnity2DAxises)
             {
-                return new Vector3(coord.x, coord.z, coord.y);
+                return new Vector3(coord.x, coord.z, -coord.y);
             }
 
             return new Vector3(coord.x, coord.y, coord.z);
         }
         public Vector3Int GetClosestToCenter(Vector3 pos)
         {
-            if (swapYAndZ)
+            if (useUnity2DAxises)
             {
-                return new Vector3Int(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.z), Mathf.RoundToInt(pos.y));
+                return new Vector3Int(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(-pos.z), Mathf.RoundToInt(pos.y));
             }
             return new Vector3Int(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z));
         }
