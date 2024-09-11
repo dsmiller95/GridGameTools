@@ -68,23 +68,38 @@ namespace Dman.GridGameTools.Tests
             yield return new object[] { V3(-2, 0, 3), 2, V3(-1, 0, 1) };
             yield return new object[] { V3(-2, 0, 3), 1, V3( 0, 0, 1) };
             
-            yield return new object[] { V3( 1, 1, 1), 1, V3( 0, 0, 1) };
+            yield return new object[] { V3( 1, 0, 1), 1, V3( 1, 0, 0) };
+            yield return new object[] { V3( 2, 0, 2), 1, V3( 1, 0, 0) };
+            yield return new object[] { V3( 1, 1, 1), 1, V3( 1, 0, 0) };
             
             yield return new object[] { V3(-18, -8, -13), 1, V3( -1, 0, 0) };
             
-            yield return new object[] { V3(4, -5, -4), 5, V3(-1,-1,-2) };
-            yield return new object[] { V3(4, -5, -4), 4, V3(-1,-2,-1) };
-            yield return new object[] { V3(4, -5, -4), 3, V3(-1,-1,-1) };
+            yield return new object[] { V3(4, -5, -4), 5, V3( 1,-2,-2) };
+            yield return new object[] { V3(4, -5, -4), 4, V3( 1,-2,-1) };
+            yield return new object[] { V3(4, -5, -4), 3, V3( 1,-1,-1) };
             yield return new object[] { V3(4, -5, -4), 2, V3( 0,-1,-1) };
             yield return new object[] { V3(4, -5, -4), 1, V3( 0,-1, 0) };
         }
         
         
         [TestCaseSource(nameof(DistanceTestCases))]
-
         public void TestCorrectDistance(Vector3Int vector, int distance)
         {
-            var initialMag = vector.MagnitudeManhattan();
+            // act
+            var shortenedVector = Positions.ShortenPreservingDirection(vector, distance);
+            var shortenedMag = shortenedVector.MagnitudeManhattan();
+
+            // assert
+            Assert.AreEqual(distance, shortenedMag);
+        }
+        
+        
+        
+        [TestCaseSource(nameof(DistanceTestCases))]
+        public void TestCorrectDistanceWhenVeryFar(Vector3Int vector, int distance)
+        {
+            vector *= 97;
+            distance *= 97;
             
             // act
             var shortenedVector = Positions.ShortenPreservingDirection(vector, distance);
