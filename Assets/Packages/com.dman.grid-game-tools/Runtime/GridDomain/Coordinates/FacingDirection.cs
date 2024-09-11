@@ -128,6 +128,21 @@ namespace Dman.GridGameTools
 
             return null;
         }
+        
+        public static FacingDirection ToBestFacingOptionOrGuess(this Vector3Int direction)
+        {
+            int absX = System.Math.Abs(direction.x);
+            int absZ = System.Math.Abs(direction.z);
+            if (absX > absZ)
+            {
+                return direction.x > 0 ? FacingDirection.East : FacingDirection.West;
+            }
+            if (absX <= absZ)
+            {
+                return direction.z > 0 ? FacingDirection.North : FacingDirection.South;
+            }
+            throw new InvalidOperationException("Unreachable code");
+        }
     
         public static FacingDirection? ToBestFacingAdjacentOnly(this Vector3Int direction)
         {
