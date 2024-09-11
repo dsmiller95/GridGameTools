@@ -75,9 +75,9 @@ namespace Dman.GridGameTools.Random
             uint range = (uint)(max - min);
             
             var state = NextState();
-            var multiplicand = (ulong)range >> 32;
-            var product = state * multiplicand;
-            return (int)product + min;
+            var product = state * (ulong)range;
+            var shifted = product >> 32;
+            return (int)shifted + min;
         }
         
         /// <summary>
