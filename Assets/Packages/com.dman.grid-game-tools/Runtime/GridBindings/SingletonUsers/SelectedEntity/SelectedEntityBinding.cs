@@ -11,6 +11,8 @@ namespace Dman.GridGameBindings.SelectedEntity
 {
     public abstract class SelectedEntityBinding : MonoBehaviour, IRenderUpdate
     {
+        [SerializeField] private bool logIfSelectedNull = false;
+        
         public abstract int RenderPriority { get; }
         protected ISelectedEntityProvider Select => SingletonLocator<ISelectedEntityProvider>.Instance;
         private IDungeonUpdater Updater => SingletonLocator<IBindExternalUpdates>.Instance;
@@ -50,7 +52,7 @@ namespace Dman.GridGameBindings.SelectedEntity
         {
             await UniTask.NextFrame(cancel);
 
-            if (Select.SelectedEntity == null)
+            if (logIfSelectedNull && Select.SelectedEntity == null)
             {
                 Log.Warning("Selected entity is null", this);
             }

@@ -56,7 +56,7 @@ namespace Dman.GridGameBindings.SelectedEntity
             {
                 if (!AllowSelectedEntitySwitch)
                 {
-                    Log.Warning("Tried to set selected entity when setting selected entity is disabled");
+                    Log.Info("Tried to set selected entity when setting selected entity is disabled");
                     pendingNextSelectedEntity = value;
                     return;
                 }
