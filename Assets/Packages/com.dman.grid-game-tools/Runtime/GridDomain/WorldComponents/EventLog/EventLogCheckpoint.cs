@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Dman.GridGameTools.EventLog
 {
     public struct EventLogCheckpoint
@@ -10,6 +12,12 @@ namespace Dman.GridGameTools.EventLog
             {
                 _index = index
             };
+        }
+
+        public int EventsUntil(EventLogCheckpoint futureCheckpoint)
+        {
+            var eventsDelta = futureCheckpoint._index - _index;
+            return Mathf.Max(0, eventsDelta);
         }
     }
 }

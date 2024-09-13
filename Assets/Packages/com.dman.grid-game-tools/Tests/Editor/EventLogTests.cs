@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Dman.GridGameTools.DataStructures;
 using Dman.GridGameTools.Entities;
 using Dman.GridGameTools.EventLog;
@@ -77,6 +78,14 @@ namespace Dman.GridGameTools.Tests
             Assert.IsNotNull(baked);
             Assert.AreEqual(expected, baked.CompleteEventCount);
         }
+
+        private void AssertAvailableEventCount()
+        {
+            Assert.AreEqual(writer.AllEvents.Count(), writer.AvailableEventCount);
+            var baked = (writer as IWorldComponentWriter)?.BakeImmutable(andDispose: false) as IEventLog;
+            Assert.IsNotNull(baked);
+            Assert.AreEqual(baked.AllEvents.Count(), baked.AvailableEventCount);
+        }
         
         [Test]
         public void WhenEventLogged_CanRetrieve()
@@ -93,6 +102,7 @@ namespace Dman.GridGameTools.Tests
             writer.LogEvent(event3);
             
             // assert
+            AssertAvailableEventCount();
             AssertCompleteEventCount(3);
             AssertEventLogIs(event1, event2, event3);
         }
@@ -115,6 +125,7 @@ namespace Dman.GridGameTools.Tests
             writer.LogEvent(event3);
             
             // assert
+            AssertAvailableEventCount();
             AssertCompleteEventCount(3);
             AssertEventLogIs(event1, event2, event3);
         }
@@ -138,6 +149,7 @@ namespace Dman.GridGameTools.Tests
             writer.LogEvent(event4);
             
             // assert
+            AssertAvailableEventCount();
             AssertCompleteEventCount(4);
             AssertEventLogIs(event3, event4);
         }
@@ -165,6 +177,7 @@ namespace Dman.GridGameTools.Tests
             writer.LogEvent(event4);
             
             // assert
+            AssertAvailableEventCount();
             AssertCompleteEventCount(4);
             AssertEventLogIs(event3, event4);
         }
@@ -187,6 +200,7 @@ namespace Dman.GridGameTools.Tests
             writer.LogEvent(event3);
             
             // assert
+            AssertAvailableEventCount();
             AssertCompleteEventCount(3);
             AssertEventLogIs(firstCheckpoint, event1, event2, event3);
             AssertEventLogIs(secondCheckpoint, event3);
@@ -214,6 +228,7 @@ namespace Dman.GridGameTools.Tests
             BakeAndSwap();
             
             // assert
+            AssertAvailableEventCount();
             AssertCompleteEventCount(3);
             AssertEventLogIs(firstCheckpoint, event1, event2, event3);
             AssertEventLogIs(secondCheckpoint, event3);
@@ -238,6 +253,7 @@ namespace Dman.GridGameTools.Tests
             writer.LogEvent(event3);
             
             // assert
+            AssertAvailableEventCount();
             AssertCompleteEventCount(3);
             AssertEventLogIs(firstCheckpoint, event2, event3);
             AssertEventLogIs(secondCheckpoint, event3);
@@ -262,6 +278,7 @@ namespace Dman.GridGameTools.Tests
             writer.LogEvent(event3);
             
             // assert
+            AssertAvailableEventCount();
             AssertCompleteEventCount(3);
             AssertEventLogIs(firstCheckpoint, event2, event3);
             AssertEventLogIs(secondCheckpoint, event3);
