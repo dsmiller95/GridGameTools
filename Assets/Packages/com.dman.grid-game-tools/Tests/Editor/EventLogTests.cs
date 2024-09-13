@@ -146,6 +146,31 @@ namespace Dman.GridGameTools.Tests
         
         
         [Test]
+        public void WhenEventLogged_ThenClearedTwice_KeepsCorrectCount_CannotRetrieve()
+        {
+            // arrange
+            InitWriter();
+            var event1 = new TestEvent();
+            var event2 = new TestEvent();
+            var event3 = new TestEvent();
+            var event4 = new TestEvent();
+            
+            // act
+            writer.LogEvent(event1);
+            writer.FlushEventLog();
+            writer.LogEvent(event2);
+            writer.FlushEventLog();
+            writer.FlushEventLog();
+            writer.LogEvent(event3);
+            writer.LogEvent(event4);
+            
+            // assert
+            AssertCompleteEventCount(4);
+            AssertEventLogIs(event3, event4);
+        }
+
+        
+        [Test]
         public void WhenEventCheckPointed_WhileWriting_KeepsCheckpoint()
         {
             // arrange
