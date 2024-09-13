@@ -230,11 +230,21 @@ namespace Dman.GridGameTools
                 //Profiler.BeginSample("WritableDungeonEntities.AllEntitiesWithIds");
                 foreach (var entityId in underlying._entities.Keys)
                 {
-                    yield return (entityId, GetEntity(entityId));
+                    var entity = GetEntity(entityId);
+                    if (entity == null)
+                    { // removed entity
+                        continue;
+                    }
+                    yield return (entityId, entity);
                 }
                 foreach (var addedEntity in addedEntities)
                 {
-                    yield return (addedEntity, GetEntity(addedEntity));
+                    var entity = GetEntity(addedEntity);
+                    if (entity == null)
+                    { // removed entity
+                        continue;
+                    }
+                    yield return (addedEntity, entity);
                 }
                 //var result = this.BuildInternal().AllEntitiesWithIds();
                 //Profiler.EndSample();
