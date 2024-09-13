@@ -23,8 +23,15 @@ namespace Dman.GridGameTools.EventLog
         public int CompleteEventCount { get; }
         public int AvailableEventCount { get; }
 
-        public EventLogCheckpoint Checkpoint();
-        public IEnumerable<IGridEvent> AllEventsSince(EventLogCheckpoint checkpoint);
+        public EventLogCheckpoint Checkpoint() => EventLogCheckpoint.Create(CompleteEventCount);
+        public IEnumerable<IGridEvent> AllEventsSince(EventLogCheckpoint checkpoint)
+        {
+            var currentCheckpoint = Checkpoint();
+            var eventsSince = checkpoint.EventsUntil(currentCheckpoint);
+            var skip = Mathf.Max(0, AvailableEventCount - eventsSince);
+            var take = Mathf.Min(eventsSince, AvailableEventCount);
+            return AllEvents.Skip(skip).Take(take);
+        }
     }
     
     public class EventLogWorldComponent : IEventLog, IWorldComponent
@@ -35,16 +42,6 @@ namespace Dman.GridGameTools.EventLog
         public bool AllowLog { get; }
         public int CompleteEventCount { get; }
         public int AvailableEventCount => _events.Count();
-        public EventLogCheckpoint Checkpoint() => EventLogCheckpoint.Create(CompleteEventCount);
-
-        public IEnumerable<IGridEvent> AllEventsSince(EventLogCheckpoint checkpoint)
-        {
-            var currentCheckpoint = Checkpoint();
-            var eventsSince = checkpoint.EventsUntil(currentCheckpoint);
-            var skip = Mathf.Max(0, AvailableEventCount - eventsSince);
-            var take = Mathf.Min(eventsSince, AvailableEventCount);
-            return AllEvents.Skip(skip).Take(take);
-        }
 
         public EventLogWorldComponent(bool allowLog = true)
         {
@@ -78,17 +75,6 @@ namespace Dman.GridGameTools.EventLog
             public bool AllowLog { get; private set; }
             public int CompleteEventCount { get; private set; }
             public int AvailableEventCount => _addedEvents.Count + (_didFlushHistory ? 0 : _baseEventLog.AvailableEventCount);
-            public EventLogCheckpoint Checkpoint() => EventLogCheckpoint.Create(CompleteEventCount);
-
-            public IEnumerable<IGridEvent> AllEventsSince(EventLogCheckpoint checkpoint)
-            {
-                if (_isDisposed) throw new ObjectDisposedException("EventLogWriterWorldComponent");
-                var currentCheckpoint = Checkpoint();
-                var eventsSince = checkpoint.EventsUntil(currentCheckpoint);
-                var skip = Mathf.Max(0, AvailableEventCount - eventsSince);
-                var take = Mathf.Min(eventsSince, AvailableEventCount);
-                return AllEvents.Skip(skip).Take(take);
-            }
 
             public IEnumerable<IGridEvent> AllEvents
             {
