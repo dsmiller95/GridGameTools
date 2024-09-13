@@ -6,6 +6,7 @@ namespace Dman.GridGameTools
 {
     public static class Positions
     {
+        
         public static Vector3Int ShortenPreservingDirection(Vector3Int vector, int maxLengthManhattan)
         {
             var initialMag = vector.MagnitudeManhattan();
@@ -68,15 +69,6 @@ namespace Dman.GridGameTools
                 Mathf.Abs(a.y),
                 Mathf.Abs(a.z)
             );
-        }
-        public static int DistanceManhattan(this Vector3Int a, Vector3Int b)
-        {
-            return Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y) + Mathf.Abs(a.z - b.z);
-        }
-        public static int MagnitudeManhattan(this Vector3Int a)
-        {
-            var abs = a.AbsComponents();
-            return abs.x + abs.y + abs.z;
         }
     }
 }
