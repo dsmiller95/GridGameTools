@@ -24,7 +24,7 @@ namespace Dman.GridGameTools.Tests
 
         public override string ToString()
         {
-            return $"TestEvent: {Entity} at {Point} - {Description}";
+            return $"[TestEvent: {Entity} at {Point} - {Description}]";
         }
     }
     
@@ -65,9 +65,9 @@ namespace Dman.GridGameTools.Tests
 
         private void AssertTestEventSequenceEquals(IEnumerable<IGridEvent> expectedEvents, IEnumerable<IGridEvent> actual)
         {
-            var expectedStr = string.Join("|#|", expectedEvents);
-            var actualStr = string.Join("|#|", actual);
-            Assert.AreEqual(expectedStr, actualStr);
+            var expectedStr = string.Join("\n", expectedEvents);
+            var actualStr = string.Join("\n", actual);
+            Assert.AreEqual(expectedStr, actualStr, $"expected \n{expectedStr}\n but got \n{actualStr}");
         }
         
         private void AssertCompleteEventCount(int expected)
