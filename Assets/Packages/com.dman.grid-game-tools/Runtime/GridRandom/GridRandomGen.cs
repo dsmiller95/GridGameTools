@@ -69,6 +69,13 @@ namespace Dman.GridGameTools.Random
             return (int)shifted;
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="min">inclusive</param>
+        /// <param name="max">exclusive</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public int NextInt(int min, int max)
         {
             if(max < min) throw new ArgumentException("max must be greater than or equal to min");
