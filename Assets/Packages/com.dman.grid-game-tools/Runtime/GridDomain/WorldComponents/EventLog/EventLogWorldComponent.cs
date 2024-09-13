@@ -16,6 +16,13 @@ namespace Dman.GridGameTools.EventLog
     {
         public IEnumerable<IGridEvent> AllEvents { get; }
         public bool AllowLog { get; }
+        /// <summary>
+        /// the count of all events every created, including flushed events
+        /// </summary>
+        public int CompleteEventCount { get; }
+
+        public EventLogCheckpoint Checkpoint();
+        public IEnumerable<IGridEvent> AllEventsSince(EventLogCheckpoint checkpoint);
     }
     
     public class EventLogWorldComponent : IEventLog, IWorldComponent
@@ -24,15 +31,24 @@ namespace Dman.GridGameTools.EventLog
         private bool _isDisposed = false;
         public IEnumerable<IGridEvent> AllEvents => _events;
         public bool AllowLog { get; }
+        public int CompleteEventCount { get; }
+        public EventLogCheckpoint Checkpoint() => EventLogCheckpoint.Create(CompleteEventCount);
+
+        public IEnumerable<IGridEvent> AllEventsSince(EventLogCheckpoint checkpoint)
+        {
+            return AllEvents;
+        }
 
         public EventLogWorldComponent(bool allowLog = true)
         {
             AllowLog = allowLog;
+            CompleteEventCount = 0;
         }
-        private EventLogWorldComponent(IEnumerable<IGridEvent> existingEvents, bool allowLog)
+        private EventLogWorldComponent(IEnumerable<IGridEvent> existingEvents, int completeEventCount, bool allowLog)
         {
             _events = existingEvents.ToList();
             AllowLog = allowLog;
+            CompleteEventCount = completeEventCount;
         }
         
         public IWorldComponentWriter GetWriter()
@@ -53,7 +69,15 @@ namespace Dman.GridGameTools.EventLog
             private List<IGridEvent> _addedEvents;
             private bool _isDisposed;
             public bool AllowLog { get; private set; }
-            
+            public int CompleteEventCount { get; private set; }
+            public EventLogCheckpoint Checkpoint() => EventLogCheckpoint.Create(CompleteEventCount);
+
+            public IEnumerable<IGridEvent> AllEventsSince(EventLogCheckpoint checkpoint)
+            {
+                if (_isDisposed) throw new ObjectDisposedException("EventLogWriterWorldComponent");
+                return AllEvents;
+            }
+
             public IEnumerable<IGridEvent> AllEvents
             {
                 get
@@ -69,12 +93,14 @@ namespace Dman.GridGameTools.EventLog
                 _baseEventLog = baseEventLog;
                 _addedEvents = new List<IGridEvent>();
                 AllowLog = baseEventLog.AllowLog;
+                CompleteEventCount = baseEventLog.CompleteEventCount;
             }
 
             public void LogEvent(IGridEvent gridEvent)
             {
                 if (_isDisposed) throw new ObjectDisposedException("EventLogWriterWorldComponent");
                 if (!AllowLog || gridEvent == null) return;
+                CompleteEventCount++;
                 _addedEvents.Add(gridEvent);
             }
 
@@ -95,7 +121,7 @@ namespace Dman.GridGameTools.EventLog
             {
                 if (_isDisposed) throw new ObjectDisposedException("EventLogWriterWorldComponent");
                 if (andDispose) _isDisposed = true;
-                return new EventLogWorldComponent(AllEvents, AllowLog);
+                return new EventLogWorldComponent(AllEvents, CompleteEventCount, AllowLog);
             }
 
             public void Dispose()
