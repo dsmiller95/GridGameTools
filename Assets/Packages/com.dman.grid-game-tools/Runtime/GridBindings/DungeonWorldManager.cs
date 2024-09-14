@@ -7,6 +7,7 @@ using Dman.GridGameTools.Commands;
 using Dman.GridGameTools.DataStructures;
 using Dman.GridGameTools.Entities;
 using Dman.GridGameTools.Random;
+using Dman.Utilities.Logger;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Events;
@@ -65,7 +66,21 @@ namespace Dman.GridGameBindings
         private SortedDictionary<int, List<IRenderUpdate>> _updateListeners = new ();
         private AsyncFnOnceCell _updateCell;
 
-        public GridRandomGen SpawningRng { get; private set; }
+        private GridRandomGen? _worldRng = null;
+
+        public GridRandomGen SpawningRng
+        {
+            get
+            {
+                if (_worldRng == null)
+                {
+                    _worldRng = new GridRandomGen(initialState.SeedOrRngIfDefault);
+                }
+
+                return _worldRng.Value;
+            }
+        }
+
         public Transform EntityParent => worldParent;
 
         
@@ -87,10 +102,20 @@ namespace Dman.GridGameBindings
                 }
             }
         }
+
+        public void SeedWith(GridRandomGen seed)
+        {
+            if (_worldRng != null)
+            {
+                Log.Error($"Seeding rng of the world, but rng has already been set. this may not be deterministic");
+            }
+
+            seed = seed.Fork(nameof(DungeonWorldManager).ToSeed());
+            _worldRng = seed;
+        }
         
         private void Awake()
         {
-            SpawningRng = new GridRandomGen(initialState.SeedOrRngIfDefault);
             _updateCell = new AsyncFnOnceCell(gameObject);
         }
 
