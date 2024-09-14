@@ -94,7 +94,7 @@ namespace Dman.GridGameBindings.SelectedEntity
             Updater?.RemoveUpdateListenerWithSwap(this);
         }
 
-        public int RenderPriority => 0;
+        public int RenderPriority => -10;
 
         private void Update()
         {
