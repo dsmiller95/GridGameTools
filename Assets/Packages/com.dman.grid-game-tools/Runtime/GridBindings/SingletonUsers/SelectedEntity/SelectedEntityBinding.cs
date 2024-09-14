@@ -23,7 +23,8 @@ namespace Dman.GridGameBindings.SelectedEntity
         /// </summary>
         protected bool KeepWorldUpdatePending { get; set; } 
         [CanBeNull] protected IDungeonWorld PreviousWorld { get; private set; }
-        protected IDungeonWorld AgainstWorld { get; private set; }
+        protected IDungeonWorld CurrentWorld { get; private set; }
+        protected IDungeonWorld AgainstWorld => CurrentWorld ?? PreviousWorld;
     
         protected abstract void SelectedEntityChanged([CanBeNull] IDungeonEntity newEntity, bool didIdChange);
     
@@ -43,8 +44,12 @@ namespace Dman.GridGameBindings.SelectedEntity
 
         private void OnEntityIdChanged(EntityId id)
         {
-            var world = AgainstWorld ?? DungeonWorldManagerSingleton.Instance.CurrentWorld;
+            var world = CurrentWorld ?? DungeonWorldManagerSingleton.Instance.CurrentWorld;
             var newEntity = world?.EntityStore.GetEntity(id);
+            if (newEntity == null)
+            {
+                newEntity = PreviousWorld?.EntityStore.GetEntity(id);
+            }
             this.SelectedEntityChanged(newEntity, true);
         }
 
@@ -62,12 +67,16 @@ namespace Dman.GridGameBindings.SelectedEntity
             if (newEntity != null)
             {
                 PreviousWorld = update.OldWorld;
-                AgainstWorld = update.NewWorld;
+                CurrentWorld = update.NewWorld;
             }
             else
             {
-                PreviousWorld = null;
-                AgainstWorld = update.OldWorld;
+                PreviousWorld = update.OldWorld;
+                CurrentWorld = null;
+            }
+
+            if (newEntity == null)
+            {
                 newEntity = id == null ? null : update.OldWorld?.EntityStore.GetEntity(id);
             }
             this.SelectedEntityChanged(newEntity, false);
