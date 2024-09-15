@@ -262,30 +262,28 @@ namespace Dman.GridGameTools
 
         public static Vector3Int GetRelativeDirectionFromAbsolute(this FacingDirection direction, Vector3Int absoluteDirection)
         {
-            Quaternion rotation = direction switch
-            {
-                FacingDirection.North => Quaternion.Euler(0, 0, 0),
-                FacingDirection.East => Quaternion.Euler(0, 90, 0),
-                FacingDirection.South => Quaternion.Euler(0, 180, 0),
-                FacingDirection.West => Quaternion.Euler(0, 270, 0),
-                _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
-            };
+            Quaternion rotation = Quaternion.Euler(0, direction.ToDegrees(), 0);
             Vector3 rotated = Quaternion.Inverse(rotation) * absoluteDirection;
             return new Vector3Int(Mathf.RoundToInt(rotated.x), Mathf.RoundToInt(rotated.y), Mathf.RoundToInt(rotated.z));
         }
     
         public static Vector3Int GetAbsoluteDirectionFromRelative(this FacingDirection direction, Vector3Int relativeDirection)
         {
-            Quaternion rotation = direction switch
-            {
-                FacingDirection.North => Quaternion.Euler(0, 0, 0),
-                FacingDirection.East => Quaternion.Euler(0, 90, 0),
-                FacingDirection.South => Quaternion.Euler(0, 180, 0),
-                FacingDirection.West => Quaternion.Euler(0, 270, 0),
-                _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
-            };
+            Quaternion rotation = Quaternion.Euler(0, direction.ToDegrees(), 0);
             Vector3 rotated = rotation * relativeDirection;
             return new Vector3Int(Mathf.RoundToInt(rotated.x), Mathf.RoundToInt(rotated.y), Mathf.RoundToInt(rotated.z));
+        }
+
+        public static int ToDegrees(this FacingDirection direction)
+        {
+            return direction switch
+            {
+                FacingDirection.North => 0,
+                FacingDirection.East => 90,
+                FacingDirection.South => 180,
+                FacingDirection.West => 270,
+                _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+            };
         }
     
         public static FacingDirection Turn(this FacingDirection direction, TurnDirection turnDirection)
