@@ -43,7 +43,7 @@ namespace GridDomain.Test
             string expectedBlockFlags,
             IDungeonPathingData pathingData,
             Vector3Int? stringOffset = null,
-            PathingLayers layer = PathingLayers.All)
+            PathingLayers layer = PathingLayers.AllLayers)
         {
             stringOffset ??= Vector3Int.zero;
             var worldBuildString = WorldBuildString.WithInlineSeparator(expectedBlockFlags, '|');
@@ -65,7 +65,7 @@ namespace GridDomain.Test
             string expectedBlockFlags,
             IDungeonPathingData pathingData,
             Vector3Int? stringOffset = null,
-            PathingLayers layer = PathingLayers.All)
+            PathingLayers layer = PathingLayers.AllLayers)
         {
             stringOffset ??= Vector3Int.zero;
             var worldBuildString = WorldBuildString.WithInlineSeparator(expectedBlockFlags, '|');

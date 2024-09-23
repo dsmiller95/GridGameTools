@@ -21,8 +21,7 @@ namespace Dman.GridGameTools.PathingData
         UserLayer11 = 1 << 28,
         UserLayer12 = 1 << 29,
         UserLayer13 = 1 << 30,
-        UserLayer14 = 1 << 31,
-        AllUserLayers = UserLayer00 | UserLayer01 | UserLayer02 | UserLayer03 | UserLayer04 | UserLayer05 | UserLayer06 | UserLayer07 | UserLayer08 | UserLayer09 | UserLayer10 | UserLayer11 | UserLayer12 | UserLayer13 | UserLayer14,
+        AllUserLayers = UserLayer00 | UserLayer01 | UserLayer02 | UserLayer03 | UserLayer04 | UserLayer05 | UserLayer06 | UserLayer07 | UserLayer08 | UserLayer09 | UserLayer10 | UserLayer11 | UserLayer12 | UserLayer13,
     
         None = 0,
         [Obsolete("Use AllCore or AllLayers, depending on if user-defined layers should be included or not.")]

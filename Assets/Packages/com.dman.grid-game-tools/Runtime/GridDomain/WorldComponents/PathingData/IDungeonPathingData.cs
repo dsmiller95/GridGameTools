@@ -11,7 +11,7 @@ namespace Dman.GridGameTools.PathingData
         public IEnumerable<Vector3Int> PathToPathCenter(
             Vector3Int origin,
             GridRandomGen rngSeed,
-            PathingLayers externalLayer = PathingLayers.All,
+            PathingLayers externalLayer = PathingLayers.AllLayers,
             PathingLayers internalLayer = PathingLayers.None);
     }
 
@@ -183,7 +183,7 @@ namespace Dman.GridGameTools.PathingData
         /// <param name="position"></param>
         /// <param name="flags"></param>
         /// <param name="layers"></param>
-        public void BlockFaces(Vector3Int position, FacingDirectionFlags flags, PathingLayers layers = PathingLayers.All);
+        public void BlockFaces(Vector3Int position, FacingDirectionFlags flags, PathingLayers layers = PathingLayers.AllCore);
 
         /// <summary>
         /// Set the faces which are blocked by the given position. may make certain edges passable.
@@ -191,7 +191,7 @@ namespace Dman.GridGameTools.PathingData
         /// <param name="position"></param>
         /// <param name="flags"></param>
         /// <param name="layer"></param>
-        public void SetBlockedFaces(Vector3Int position, FacingDirectionFlags flags, PathingLayers layer = PathingLayers.All);
+        public void SetBlockedFaces(Vector3Int position, FacingDirectionFlags flags, PathingLayers layer = PathingLayers.AllCore);
         public void SetBlockedFaces(Vector3Int position, BlockedTileLayers blockedTileFull);
         public void SetNewPlayerPosition(Vector3Int position);
         /// <summary>

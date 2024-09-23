@@ -5,7 +5,7 @@ namespace Dman.GridGameTools.PathingData
     public struct BlockedTileLayers : IEquatable<BlockedTileLayers>
     {
         public static readonly BlockedTileLayers Empty = new(PathingLayers.None, FacingDirectionFlags.None);
-        public static readonly BlockedTileLayers FullyBlocked = new(PathingLayers.All, FacingDirectionFlags.All);
+        public static readonly BlockedTileLayers FullyBlocked = new(PathingLayers.AllLayers, FacingDirectionFlags.All);
     
         private FacingDirectionFlags blockedByStatic;
         private FacingDirectionFlags blockedByMobile;
