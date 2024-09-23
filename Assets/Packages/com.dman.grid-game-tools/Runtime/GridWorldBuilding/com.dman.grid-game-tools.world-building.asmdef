@@ -3,7 +3,8 @@
     "rootNamespace": "Dman.GridGameTools.WorldBuilding",
     "references": [
         "GUID:66fcb33cbe5a67e478baef5042114386",
-        "GUID:c8784c0d2f79d1949a28620ea027ab81"
+        "GUID:c8784c0d2f79d1949a28620ea027ab81",
+        "GUID:15029afac29743d44b9a7aada316089c"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

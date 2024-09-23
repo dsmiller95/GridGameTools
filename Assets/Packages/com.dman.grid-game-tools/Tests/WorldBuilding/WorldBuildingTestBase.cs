@@ -28,6 +28,7 @@ namespace GridDomain.Test
         protected IDungeonWorld World;
         protected WorldBuilder WorldBuilder;
         protected WorldBuildConfig LastUsedBuildConfig;
+        protected bool ShouldShuffleEntities = false;
 
         [CanBeNull] private IEnumerable<IWorldComponent> components;
         [CanBeNull] private IEnumerable<ICreateDungeonComponent> componentFactories;
@@ -78,7 +79,7 @@ namespace GridDomain.Test
             components = null;
             var usedComponentFactories = componentFactories;
             componentFactories = null;
-            World = WorldBuilder.BuildToWorld(characterMap, seed, usedComponents, usedComponentFactories);
+            World = WorldBuilder.BuildToWorld(characterMap, seed, usedComponents, usedComponentFactories, ShouldShuffleEntities);
         }
         protected EntityHandle<T> GetAtSingle<T>(Vector3Int position) where T: IDungeonEntity
         {

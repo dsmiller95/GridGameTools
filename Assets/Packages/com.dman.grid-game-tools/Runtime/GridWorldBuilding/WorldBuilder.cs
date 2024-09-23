@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Dman.GridGameTools.Entities;
 using Dman.GridGameTools.PathingData;
+using Dman.GridGameTools.Random;
 using Dman.Math;
 using UnityEngine;
 
@@ -43,11 +44,20 @@ namespace Dman.GridGameTools.WorldBuilding
         /// build to a world with certain values set to defaults
         /// </summary>
         /// <returns></returns>
-        public IDungeonWorld BuildToWorld(WorldBuildString characterMap, uint seed = 0, 
+        public IDungeonWorld BuildToWorld(WorldBuildString characterMap, uint seed = 0,
             IEnumerable<IWorldComponent> components = null,
-            IEnumerable<ICreateDungeonComponent> componentCreators = null)
+            IEnumerable<ICreateDungeonComponent> componentCreators = null,
+            bool shuffleEntities = false)
         {
             var allEntities = Build(Vector3Int.zero, characterMap);
+            if (shuffleEntities)
+            {
+                var entityList = allEntities.ToList();
+                var rngSeed = seed == 0 ? (uint)UnityEngine.Random.Range(1, int.MaxValue) : seed;
+                var rng = new GridRandomGen(rngSeed);
+                rng.Shuffle(entityList);
+                allEntities = entityList;
+            }
             var bounds = new DungeonBounds(Vector3Int.zero, characterMap.Size());
             var pathingData = new DungeonPathingData(bounds, playerPosition: Vector3Int.zero);
             var allComponents = components?.ToList() ?? new List<IWorldComponent>(1);
