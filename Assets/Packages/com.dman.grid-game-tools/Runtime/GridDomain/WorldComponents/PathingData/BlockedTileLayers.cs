@@ -9,10 +9,12 @@ namespace Dman.GridGameTools.PathingData
     
         private FacingDirectionFlags blockedByStatic;
         private FacingDirectionFlags blockedByMobile;
+        private FacingDirectionFlags userLayer05;
         public BlockedTileLayers(PathingLayers layers, FacingDirectionFlags flags)
         {
             blockedByStatic = layers.HasFlag(PathingLayers.Static) ? flags : FacingDirectionFlags.None;
             blockedByMobile = layers.HasFlag(PathingLayers.Mobile) ? flags : FacingDirectionFlags.None;
+            userLayer05 = layers.HasFlag(PathingLayers.UserLayer05) ? flags : FacingDirectionFlags.None;
         }
     
         public FacingDirectionFlags GetBlockedFaces(PathingLayers layers)
@@ -25,6 +27,10 @@ namespace Dman.GridGameTools.PathingData
             if (layers.HasFlag(PathingLayers.Mobile))
             {
                 result |= blockedByMobile;
+            }
+            if (layers.HasFlag(PathingLayers.UserLayer05))
+            {
+                result |= userLayer05;
             }
 
             return result;
@@ -40,6 +46,10 @@ namespace Dman.GridGameTools.PathingData
             {
                 blockedByMobile = flags;
             }
+            if (layers.HasFlag(PathingLayers.UserLayer05))
+            {
+                userLayer05 = flags;
+            }
         }
 
         public void BlockFaces(PathingLayers layers, FacingDirectionFlags flags)
@@ -52,11 +62,15 @@ namespace Dman.GridGameTools.PathingData
             {
                 blockedByMobile |= flags;
             }
+            if (layers.HasFlag(PathingLayers.UserLayer05))
+            {
+                userLayer05 |= flags;
+            }
         }
 
         public bool Equals(BlockedTileLayers other)
         {
-            return blockedByStatic == other.blockedByStatic && blockedByMobile == other.blockedByMobile;
+            return blockedByStatic == other.blockedByStatic && blockedByMobile == other.blockedByMobile && userLayer05 == other.userLayer05;
         }
 
         public override bool Equals(object obj)
@@ -66,7 +80,7 @@ namespace Dman.GridGameTools.PathingData
 
         public override int GetHashCode()
         {
-            return HashCode.Combine((int)blockedByStatic, (int)blockedByMobile);
+            return HashCode.Combine((int)blockedByStatic, (int)blockedByMobile, (int)userLayer05);
         }
     
         public static bool operator ==(BlockedTileLayers a, BlockedTileLayers b)

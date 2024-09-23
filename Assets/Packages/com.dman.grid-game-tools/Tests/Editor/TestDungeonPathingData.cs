@@ -20,6 +20,7 @@ namespace Dman.GridGameTools.Tests
             var blockedTile = new Vector3Int(2, 2, 2);
             writer.BlockFaces(blockedTile, FacingDirectionFlags.North | FacingDirectionFlags.Down | FacingDirectionFlags.Up, PathingLayers.Mobile);
             writer.BlockFaces(blockedTile, FacingDirectionFlags.North | FacingDirectionFlags.South | FacingDirectionFlags.West, PathingLayers.Static);
+            writer.BlockFaces(blockedTile, FacingDirectionFlags.South | FacingDirectionFlags.East | FacingDirectionFlags.West, PathingLayers.UserLayer05);
             
             writer.BuildAndDisposeAndSwap(ref pathingData);
             
@@ -33,14 +34,14 @@ namespace Dman.GridGameTools.Tests
 ||
 @@
 |S|
-E|NSUDW|
+E|NSUDEW|W
 |N|
 @@
 ||
 |D|
 ||
 ";
-                AssertBlockedDirections(expectedBlockedAllFaces, pathingData, Vector3Int.one, PathingLayers.All);
+                AssertBlockedDirections(expectedBlockedAllFaces, pathingData, Vector3Int.one, PathingLayers.AllLayers);
                 var expectedBlockedMobileFaces = @"
 ||
 |U|
@@ -69,6 +70,20 @@ E|NSW|
 ||
 ";
                 AssertBlockedDirections(expectedBlockedStaticFaces, pathingData, Vector3Int.one, PathingLayers.Static);
+                var expectedBlockedUserLayerFaces = @"
+||
+||
+||
+@@
+||
+E|SEW|W
+|N|
+@@
+||
+||
+||
+";
+                AssertBlockedDirections(expectedBlockedUserLayerFaces, pathingData, Vector3Int.one, PathingLayers.UserLayer05);
             }
 
             if (testBlockedBy)
@@ -79,14 +94,14 @@ E|NSW|
 ||
 @@
 ||
-|NSUDW|
+|NSUDEW|
 ||
 @@
 ||
 ||
 ||
 ";
-                AssertBlockedByDirections(expectedBlockedAllFaces, pathingData, Vector3Int.one, PathingLayers.All);
+                AssertBlockedByDirections(expectedBlockedAllFaces, pathingData, Vector3Int.one, PathingLayers.AllLayers);
                 var expectedBlockedMobileFaces = @"
 ||
 ||
@@ -115,6 +130,20 @@ E|NSW|
 ||
 ";
                 AssertBlockedByDirections(expectedBlockedStaticFaces, pathingData, Vector3Int.one, PathingLayers.Static);
+                var expectedBlockedUserLayerFaces = @"
+||
+||
+||
+@@
+||
+|SEW|
+||
+@@
+||
+||
+||
+";
+                AssertBlockedByDirections(expectedBlockedUserLayerFaces, pathingData, Vector3Int.one, PathingLayers.UserLayer05);
             }
         }
         
