@@ -2,6 +2,7 @@ using System;
 
 namespace Dman.GridGameTools.PathingData
 {
+    [Flags]
     public enum PathingLayers : int
     {
         Static = 1<<0,
