@@ -9,13 +9,23 @@ namespace Dman.GridGameBindings
 {
     public static class BindingHelpers
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="transform"></param>
+        /// <param name="context"></param>
+        /// <param name="oldCoordinate"></param>
+        /// <param name="newCoordinate"></param>
+        /// <param name="moveTimePerTileSeconds">units of Seconds per Tile</param>
+        /// <param name="accelerationPerTile">how much to accelerate the speed of movement, in units of Tiles/Second per Tile (AKA 1/Second) </param>
+        /// <param name="cancel"></param>
         public static async UniTask MoveToCoordinateHorizontalFirst(
             Transform transform,
             IDungeonToWorldContext context,
             DungeonCoordinate oldCoordinate,
             DungeonCoordinate newCoordinate,
             float moveTimePerTileSeconds,
-            bool skipVerticalIfLargeHeight,
+            float accelerationPerTile,
             CancellationToken cancel)
         {
             var (pos, rot) = context.GetPosRot(newCoordinate);
@@ -27,23 +37,14 @@ namespace Dman.GridGameBindings
         
             var startPos = oldCoordinate.Position;
             var endPos = newCoordinate.Position;
-            var delta = endPos - startPos;
-            if (skipVerticalIfLargeHeight)
-            {
-                if (delta.y > 10)
-                { // if we're moving up a whole bunch, our first move should snap us to 10 below our end position
-                    startPos.y = endPos.y - 10;
-                }else if (delta.y < -10)
-                { // if we're moving down a whole bunch, our last move should only move us to 10 below our start position
-                    endPos.y = startPos.y - 10;
-                }   
-            }
         
             await MoveFromToWithSnap(
                 transform,
                 context,
                 startPos, endPos,
-                moveTimePerTileSeconds, cancel);
+                moveTimePerTileSeconds, 
+                accelerationPerTile,
+                cancel);
         }
 
         private static async UniTask MoveFromToWithSnap(
@@ -52,17 +53,22 @@ namespace Dman.GridGameBindings
             Vector3Int startPos,
             Vector3Int endPos,
             float moveTimePerTileSeconds,
+            float accelerationPerTile,
             CancellationToken cancel
         )
         {
             transform.position = context.GetCenter(startPos);
-        
+
+            var speed = 1 / moveTimePerTileSeconds;
+            var tiles = 0;
             var delta = endPos - startPos;
             foreach (var deltaPos in VectorPathUtilities.PathFrom0XZY(delta))
             {
                 var nextCoord = deltaPos + startPos;
                 var nextPos = context.GetCenter(nextCoord);
-                await MoveTo(transform, nextPos, moveTimePerTileSeconds, cancel);
+                await MoveTo(transform, nextPos, 1/speed, cancel);
+                tiles++;
+                if(tiles > 4) speed += accelerationPerTile;
             }
         
             transform.position = context.GetCenter(endPos);
