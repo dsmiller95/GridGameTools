@@ -6,71 +6,82 @@ namespace Dman.GridGameTools.PathingData
     {
         public static readonly BlockedTileLayers Empty = new(PathingLayers.None, FacingDirectionFlags.None);
         public static readonly BlockedTileLayers FullyBlocked = new(PathingLayers.AllLayers, FacingDirectionFlags.All);
-    
-        private FacingDirectionFlags blockedByStatic;
-        private FacingDirectionFlags blockedByMobile;
-        private FacingDirectionFlags userLayer05;
+
+        /// <summary>
+        /// bitwise layout of blocking data.
+        /// every 6 bits is a block of FacingDirectionFlags
+        /// the first 6 bits are the flags for Static, the next are flags for Mobile, then the User layers continue after that from 0 to 5
+        /// </summary>
+        private ulong blockedData;
         public BlockedTileLayers(PathingLayers layers, FacingDirectionFlags flags)
         {
-            blockedByStatic = layers.HasFlag(PathingLayers.Static) ? flags : FacingDirectionFlags.None;
-            blockedByMobile = layers.HasFlag(PathingLayers.Mobile) ? flags : FacingDirectionFlags.None;
-            userLayer05 = layers.HasFlag(PathingLayers.UserLayer05) ? flags : FacingDirectionFlags.None;
+            var fullLayerMask = ExpandToFullLayerMask(layers);
+            var fullFlags = SpreadToAllLayers(flags);
+            blockedData = fullLayerMask & fullFlags;
         }
-    
-        public FacingDirectionFlags GetBlockedFaces(PathingLayers layers)
+
+        private static ulong ExpandToFullLayerMask(PathingLayers layers)
         {
-            var result = FacingDirectionFlags.None;
-            if (layers.HasFlag(PathingLayers.Static))
+            var baseMask = (ulong)layers;
+            ulong result = 0;
+            
+            for (int i = 9; i >= 0; i--)
             {
-                result |= blockedByStatic;
+                var bit = (baseMask >> i) & 1;
+
+                var fullMask = bit * 0b111111;
+                result = (result << 6) | fullMask;
             }
-            if (layers.HasFlag(PathingLayers.Mobile))
+
+            return result;
+        }
+
+        private static ulong SpreadToAllLayers(FacingDirectionFlags flags)
+        {
+            ulong spreadMult = 0b000001_000001_000001_000001_000001_000001_000001_000001_000001_000001;
+            return (ulong)flags * spreadMult;
+        }
+        
+        private static FacingDirectionFlags CombineAllLayers(ulong spreadFlags)
+        {
+            const ulong mask = 0b111111;
+            FacingDirectionFlags result = FacingDirectionFlags.None;
+            for (int i = 0; i < 10; i++)
             {
-                result |= blockedByMobile;
-            }
-            if (layers.HasFlag(PathingLayers.UserLayer05))
-            {
-                result |= userLayer05;
+                var forLayer = (FacingDirectionFlags)(spreadFlags & mask);
+                result |= forLayer;
+                
+                spreadFlags >>= 6;
             }
 
             return result;
         }
     
+        public FacingDirectionFlags GetBlockedFaces(PathingLayers layers)
+        {
+            var mask = ExpandToFullLayerMask(layers);
+            var spreadFlags = blockedData & mask;
+            return CombineAllLayers(spreadFlags);
+        }
+    
         public void SetBlockedFaces(PathingLayers layers, FacingDirectionFlags flags)
         {
-            if (layers.HasFlag(PathingLayers.Static))
-            {
-                blockedByStatic = flags;
-            }
-            if (layers.HasFlag(PathingLayers.Mobile))
-            {
-                blockedByMobile = flags;
-            }
-            if (layers.HasFlag(PathingLayers.UserLayer05))
-            {
-                userLayer05 = flags;
-            }
+            var mask = ExpandToFullLayerMask(layers);
+            var spreadFlags = SpreadToAllLayers(flags) & mask;
+            
+            blockedData = (blockedData & ~mask) | spreadFlags;
         }
 
         public void BlockFaces(PathingLayers layers, FacingDirectionFlags flags)
         {
-            if (layers.HasFlag(PathingLayers.Static))
-            {
-                blockedByStatic |= flags;
-            }
-            if (layers.HasFlag(PathingLayers.Mobile))
-            {
-                blockedByMobile |= flags;
-            }
-            if (layers.HasFlag(PathingLayers.UserLayer05))
-            {
-                userLayer05 |= flags;
-            }
+            var mask = ExpandToFullLayerMask(layers);
+            var spreadFlags = SpreadToAllLayers(flags) & mask;
+            blockedData |= spreadFlags;
         }
 
         public bool Equals(BlockedTileLayers other)
         {
-            return blockedByStatic == other.blockedByStatic && blockedByMobile == other.blockedByMobile && userLayer05 == other.userLayer05;
+            return blockedData == other.blockedData;
         }
 
         public override bool Equals(object obj)
@@ -80,7 +91,7 @@ namespace Dman.GridGameTools.PathingData
 
         public override int GetHashCode()
         {
-            return HashCode.Combine((int)blockedByStatic, (int)blockedByMobile, (int)userLayer05);
+            return HashCode.Combine((int)blockedData, (int)(blockedData >> 32));
         }
     
         public static bool operator ==(BlockedTileLayers a, BlockedTileLayers b)

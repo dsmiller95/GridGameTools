@@ -3,7 +3,7 @@ using System;
 namespace Dman.GridGameTools.PathingData
 {
     [Flags]
-    public enum PathingLayers : int
+    public enum PathingLayers : uint
     {
         Static = 1<<0,
         Mobile = 1<<1,
