@@ -324,6 +324,7 @@ namespace Dman.GridGameTools
             if (!_memoizedSinglesByType.TryGetValue(typeof(T), out var result))
             {
                 result = AllEntitiesWithIds().SingleOrDefault(e => e.entity is T);
+                if (result is { id: null }) result = null;
                 _memoizedSinglesByType[typeof(T)] = result;
             }
 
