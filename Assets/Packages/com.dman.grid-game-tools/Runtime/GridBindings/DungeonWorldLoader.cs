@@ -10,9 +10,9 @@ using UnityEngine;
 
 namespace Dman.GridGameBindings
 {
-    public interface IApplyCommandPostWorldLoad
+    public interface IModifyWorldPostLoad
     {
-        public IDungeonCommand PostWorldLoadCommand { get; }
+        public IDungeonWorld OnPostLoad(IDungeonWorld loaded, bool andDispose);
     }
 
     /// <summary>
@@ -72,10 +72,10 @@ namespace Dman.GridGameBindings
             var world = DungeonWorld.CreateEmpty(seed, components);
 
             (IDungeonWorld newWorld, var entities) = world.AddEntities(allPairs.Select(x => x.entity));
-            var postWorldCommand = GetComponentInChildren<IApplyCommandPostWorldLoad>()?.PostWorldLoadCommand;
-            if (postWorldCommand != null)
+            var postWorldModifier = GetComponentInChildren<IModifyWorldPostLoad>();
+            if (postWorldModifier != null)
             {
-                newWorld = newWorld.ApplyCommand(postWorldCommand, andDispose: true);
+                newWorld = postWorldModifier.OnPostLoad(newWorld, andDispose: true);
             }
             var entityIds = entities.ToList();
             for (int i = 0; i < entityIds.Count; i++)
