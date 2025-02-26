@@ -31,6 +31,7 @@ MonoBehaviour:
     m_Url: https://package.openupm.com
     m_Scopes:
     - com.cysharp.unitask
+    - com.dman.async-utilities
     - com.dman.math
     - com.dman.utilities
     m_IsDefault: 0

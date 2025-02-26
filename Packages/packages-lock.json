@@ -7,6 +7,16 @@
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
+    "com.dman.async-utilities": {
+      "version": "0.8.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.cysharp.unitask": "2.3.1",
+        "com.dman.utilities": "0.7.0"
+      },
+      "url": "https://package.openupm.com"
+    },
     "com.dman.math": {
       "version": "0.1.1",
       "depth": 0,
@@ -15,12 +25,10 @@
       "url": "https://package.openupm.com"
     },
     "com.dman.utilities": {
-      "version": "0.7.0",
+      "version": "0.8.0",
       "depth": 0,
       "source": "registry",
-      "dependencies": {
-        "com.cysharp.unitask": "2.3.1"
-      },
+      "dependencies": {},
       "url": "https://package.openupm.com"
     },
     "com.unity.collab-proxy": {
@@ -132,9 +140,9 @@
       "depth": 0,
       "source": "registry",
       "dependencies": {
+        "com.unity.modules.audio": "1.0.0",
         "com.unity.modules.director": "1.0.0",
         "com.unity.modules.animation": "1.0.0",
-        "com.unity.modules.audio": "1.0.0",
         "com.unity.modules.particlesystem": "1.0.0"
       },
       "url": "https://packages.unity.com"
