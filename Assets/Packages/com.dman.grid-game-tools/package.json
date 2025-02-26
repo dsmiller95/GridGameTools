@@ -7,7 +7,8 @@
   "dependencies": {
     "com.dman.math": "0.1.1",
     "com.cysharp.unitask": "2.5.4",
-    "com.dman.utilities": "0.7.0"
+    "com.dman.utilities": "0.8.0",
+    "com.dman.async-utilities": "0.8.0"
   },
   "author": {
     "name": "Dan Miller",
