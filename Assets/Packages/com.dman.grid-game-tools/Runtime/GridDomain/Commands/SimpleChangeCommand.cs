@@ -32,7 +32,5 @@ namespace Dman.GridGameTools.Commands
             world.SetEntity(ActionTaker,  Lambda(ofType));
             return Array.Empty<IDungeonCommand>();
         }
-
-        public MovementExpectation ExpectsToCauseMovement => MovementExpectation.WillNotMove;
     }
 }

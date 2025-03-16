@@ -8,7 +8,6 @@ namespace Dman.GridGameTools.EventLog
     public record EmitEventLogCommand(IGridEvent Evt) : IDungeonCommand
     {
         public EntityId ActionTaker => EntityId.Invalid;
-        public MovementExpectation ExpectsToCauseMovement => MovementExpectation.WillNotMove;
         private IGridEvent Evt { get; } = Evt;
 
         public IEnumerable<IDungeonCommand> ApplyCommand(ICommandDungeon world)

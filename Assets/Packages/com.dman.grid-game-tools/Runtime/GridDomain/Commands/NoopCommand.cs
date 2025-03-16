@@ -8,7 +8,6 @@ namespace Dman.GridGameTools.Commands
     {
         public static readonly NoopCommand Instance = new NoopCommand();
         public EntityId ActionTaker => null;
-        public MovementExpectation ExpectsToCauseMovement => MovementExpectation.WillNotMove;
         public IEnumerable<IDungeonCommand> ApplyCommand(ICommandDungeon world)
         {
             return Array.Empty<IDungeonCommand>();

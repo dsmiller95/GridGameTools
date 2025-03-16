@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using Dman.GridGameTools.Entities;
 using JetBrains.Annotations;
 
 namespace Dman.GridGameTools.Commands
 {
+    [Obsolete("Prefer emitting events on domain actions rather than filtering on movement outcome.")]
     public enum MovementExpectation
     {
         /// <summary>
@@ -24,7 +26,8 @@ namespace Dman.GridGameTools.Commands
     {
         public IEnumerable<IDungeonCommand> ApplyCommand(ICommandDungeon world);
         [CanBeNull] public EntityId ActionTaker { get; }
-        public MovementExpectation ExpectsToCauseMovement { get; }
+        [Obsolete("Prefer emitting events on domain actions rather than filtering on movement outcome.")]
+        public MovementExpectation ExpectsToCauseMovement => MovementExpectation.MightMove;
 
         public IEnumerable<IDungeonCommand> ApplyCommandWithProfileSpans(ICommandDungeon world)
         {

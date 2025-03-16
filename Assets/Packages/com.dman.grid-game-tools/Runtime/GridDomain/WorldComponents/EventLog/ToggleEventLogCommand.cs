@@ -8,7 +8,6 @@ namespace Dman.GridGameTools.EventLog
     public record ToggleEventLogCommand(bool AllowLogs) : IDungeonCommand
     {
         public EntityId ActionTaker => EntityId.Invalid;
-        public MovementExpectation ExpectsToCauseMovement => MovementExpectation.WillNotMove;
         public bool AllowLogs { get; } = AllowLogs;
 
         public IEnumerable<IDungeonCommand> ApplyCommand(ICommandDungeon world)

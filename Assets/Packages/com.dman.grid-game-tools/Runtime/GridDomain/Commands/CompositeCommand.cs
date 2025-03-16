@@ -10,7 +10,6 @@ namespace Dman.GridGameTools.Commands
     {
         public List<IDungeonCommand> Commands { get; }
         public EntityId ActionTaker { get; }
-        public MovementExpectation ExpectsToCauseMovement => MovementExpectation.MightMove;
 
         public CompositeCommand(params IDungeonCommand[] commands) : this(commands.ToList()) { }
         

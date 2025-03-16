@@ -8,7 +8,6 @@ namespace Dman.GridGameTools.Commands
     {
         public EntityId ActionTaker => null;
         public Action<ICommandDungeon> Lambda { get; set; }
-        public MovementExpectation ExpectsToCauseMovement => MovementExpectation.WillNotMove;
         public LambdaCommand(Action<ICommandDungeon> lambda)
         {
             Lambda = lambda;

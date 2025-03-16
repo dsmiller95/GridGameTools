@@ -9,7 +9,6 @@ namespace Dman.GridGameTools.Commands
     {
         private readonly IDungeonEntity[] _entities;
         public EntityId ActionTaker => null;
-        public MovementExpectation ExpectsToCauseMovement => MovementExpectation.WillNotMove;
         [CanBeNull] public EntityId[] AddedEntities { get; private set; }
         public AddEntitiesCommand(params IDungeonEntity[] entities)
         {
