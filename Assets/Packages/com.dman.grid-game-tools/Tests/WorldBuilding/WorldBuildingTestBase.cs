@@ -112,7 +112,7 @@ namespace GridDomain.Test
                 .Build();
         }
         
-        public WorldBuilder GetBuilder()
+        protected WorldBuilder GetBuilder()
         {
             var builder =  WorldBuilder.Create()
                 .WithBuildConfig(DefaultBuildConfig)
