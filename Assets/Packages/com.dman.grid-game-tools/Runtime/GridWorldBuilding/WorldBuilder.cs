@@ -57,13 +57,25 @@ namespace Dman.GridGameTools.WorldBuilding
         /// <summary>
         /// Other entity factories add to or override the factories provided by the DefaultEntities factory.
         /// </summary>
-        public WorldBuilder AddOtherFactories(params (string, Func<Vector3Int, IDungeonEntity>)[] otherFactories) =>
+        public WorldBuilder AddFactories(params (string, Func<Vector3Int, IDungeonEntity>)[] otherFactories) =>
             otherFactories == null ? this : this with { OtherFactories = OtherFactories.Concat(otherFactories) };
         /// <summary>
         /// Other entity factories add to or override the factories provided by the DefaultEntities factory.
         /// </summary>
-        public WorldBuilder AddOtherFactories(IEnumerable<(string, Func<Vector3Int, IDungeonEntity>)> otherFactories) =>
+        public WorldBuilder AddFactories(IEnumerable<(string, Func<Vector3Int, IDungeonEntity>)> otherFactories) =>
             otherFactories == null ? this : this with { OtherFactories = OtherFactories.Concat(otherFactories) };
+
+        /// <summary>
+        /// Other entity factories add to or override the factories provided by the DefaultEntities factory.
+        /// </summary>
+        public WorldBuilder AddFactory(string forCharacter, Func<Vector3Int, IDungeonEntity> factory) =>
+            this.AddFactories((forCharacter, factory));
+        
+        /// <summary>
+        /// Other entity factories add to or override the factories provided by the DefaultEntities factory.
+        /// </summary>
+        public WorldBuilder AddFactory((string, Func<Vector3Int, IDungeonEntity>) factoryTuple) =>
+            this.AddFactories(factoryTuple);
         
         /// <summary>
         /// The build config defines how the character map string is interpreted by the builder. For example, if the Y-axis go down or up the string.
@@ -143,7 +155,7 @@ namespace Dman.GridGameTools.WorldBuilding
                 .WithDefaultEntities(defaultEntities)
                 .WithDefaultChar(defaultChar)
                 .WithSeed(seed)
-                .AddOtherFactories(otherFactories);
+                .AddFactories(otherFactories);
         }
         
         [Obsolete("Use Create() and then configure the builder with the fluent API instead.")]
