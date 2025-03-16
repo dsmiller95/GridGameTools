@@ -162,6 +162,21 @@ namespace Dman.GridGameBindings
             var (newWorld, modifiedCommands) = CurrentWorld.ApplyCommandsWithModifiedCommands(commands);
             this.UpdateWorld(Rc.Create(newWorld), modifiedCommands);
         }
+        
+        
+        public void ApplyCommands(IEnumerable<IDungeonCommand> allCommands)
+        {
+            if(!CanUpdateWorld()) throw new InvalidOperationException("Cannot update world while already updating");
+            
+            if (logTopLevelCommands)
+            {
+                // avoid multiple enumerations
+                allCommands = allCommands.ToList();
+                LogCommands(allCommands);
+            }
+            var (newWorld, modifiedCommands) = CurrentWorld.ApplyCommandsWithModifiedCommands(allCommands);
+            this.UpdateWorld(Rc.Create(newWorld), modifiedCommands);
+        }
     
         public void ApplyCommandsIfEmittedEvent(IEnumerable<IDungeonCommand> allCommands, Func<IGridEvent, bool> eventPredicate)
         {
@@ -216,6 +231,7 @@ namespace Dman.GridGameBindings
         
             this.UpdateWorld(Rc.Create(newWorld), modifiedCommands);
         }
+        
     
         private void LogCommands(IEnumerable<IDungeonCommand> commands)
         {
