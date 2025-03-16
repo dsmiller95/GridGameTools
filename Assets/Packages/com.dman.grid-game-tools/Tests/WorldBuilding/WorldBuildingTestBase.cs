@@ -19,44 +19,71 @@ namespace GridDomain.Test
         public object GetIdentifyingKey(IDungeonEntity entity);
     }
     
-    public abstract class WorldBuildingTestBase
+    public abstract class WorldBuildingTestBase : IProvideWorldBuilder
     {
         protected abstract IDefaultFactoriesFactory DefaultEntitiesFactory { get; }
         protected abstract IEntityComparator EntityComparator { get; }
         protected abstract WorldBuildConfig DefaultBuildConfig { get; }
         
         protected IDungeonWorld World;
-        protected WorldBuilder WorldBuilder;
-        protected WorldBuildConfig LastUsedBuildConfig;
+
+        private WorldBuilderPatternResult _lastWorldBuildResult;
+        protected WorldBuilderPatternResult LastWorldBuildResult
+        {
+            get => _lastWorldBuildResult;
+            set
+            {
+                _lastWorldBuildResult = value;
+                World = _lastWorldBuildResult.World;
+            }
+        }
+
+        [Obsolete("Use LastWorldBuildResult instead")]
+        protected WorldBuildConfig LastUsedBuildConfig => LastWorldBuildResult.WorldBuildConfig;
         protected bool ShouldShuffleEntities = false;
 
+        [Obsolete("Use GetBuilder().AddComponents(...).BuildInto(this) instead")]
         [CanBeNull] private IEnumerable<IWorldComponent> components;
+        [Obsolete("Use GetBuilder().AddComponents(...).BuildInto(this) instead")]
         [CanBeNull] private IEnumerable<ICreateDungeonComponent> componentFactories;
+
+        [Obsolete("Use GetBuilder().AddComponents(...).BuildInto(this) instead")]
         protected void UseWorldComponents(IEnumerable<IWorldComponent> oneTimeComponents)
         {
             components = oneTimeComponents;
             componentFactories = null;
         }
+        [Obsolete("Use GetBuilder().AddComponents(...).BuildInto(this) instead")]
         protected void UseWorldComponents(params IWorldComponent[] oneTimeComponents)
         {
             components = oneTimeComponents;
             componentFactories = null;
         }
+        [Obsolete("Use GetBuilder().AddComponents(...).BuildInto(this) instead")]
         protected void UseWorldComponents(params ICreateDungeonComponent[] oneTimeComponentFactories)
         {
             componentFactories = oneTimeComponentFactories;
             components = null;
         }
 
+        [Obsolete("Use GetBuilder().AddComponents(...).BuildInto(this) instead")]
         protected void AddWorldComponents(params ICreateDungeonComponent[] oneTimeComponentFactories)
         {
             componentFactories = componentFactories?.Concat(oneTimeComponentFactories).ToList() ?? oneTimeComponentFactories.ToList();
+        }
+
+        protected void CreateWorld(string characterMap)
+        {
+            GetBuilder()
+                .WithMap(characterMap)
+                .BuildInto(this);
         }
         
         protected void CreateWorld(string characterMap, params (string, Func<Vector3Int, IDungeonEntity>)[] otherFactories)
         {
             CreateWorld(characterMap, seed: 0, otherFactories);
         }
+
         protected void CreateWorld(string characterMap, uint seed = 0, params (string, Func<Vector3Int, IDungeonEntity>)[] otherFactories)
         {
             CreateWorld(
@@ -68,19 +95,42 @@ namespace GridDomain.Test
 
         protected void CreateWorld(WorldBuildString characterMap, uint seed = 0, params (string, Func<Vector3Int, IDungeonEntity>)[] otherFactories)
         {
-            LastUsedBuildConfig = characterMap.BuildConfig;
-            var defaultStr = '-'.ToString();
-            WorldBuilder =  WorldBuilder.Create(DefaultEntitiesFactory, defaultStr, seed, otherFactories);
-         
-            //   N
-            // W x E
-            //   S
             var usedComponents = components;
             components = null;
             var usedComponentFactories = componentFactories;
             componentFactories = null;
-            World = WorldBuilder.BuildToWorld(characterMap, seed, usedComponents, usedComponentFactories, ShouldShuffleEntities);
+
+            GetBuilder()
+                .WithSeed(seed)
+                .WithOtherFactories(otherFactories)
+                .WithMap(characterMap)
+                .AddComponents(usedComponents)
+                .AddComponents(usedComponentFactories)
+                .BuildInto(this);
         }
+        
+        public WorldBuilder GetBuilder()
+        {
+            var builder =  WorldBuilder.Create()
+                .WithBuildConfig(DefaultBuildConfig)
+                .WithDefaultEntities(DefaultEntitiesFactory)
+                .WithDefaultChar("-")
+                .WithSeed(0)
+                .WithShuffleEntities(ShouldShuffleEntities);
+            builder = ApplyTestWorldBuilderDefaults(builder);
+            return builder;
+        }
+
+        protected virtual WorldBuilder ApplyTestWorldBuilderDefaults(WorldBuilder builder) => builder;
+        protected virtual WorldBuilder ApplyTestWorldBuilderOverrides(WorldBuilder builder) => builder;
+
+        public void Accept(WorldBuilder builder)
+        {
+            builder = ApplyTestWorldBuilderOverrides(builder);
+
+            LastWorldBuildResult = builder.Build();
+        }
+        
         protected EntityHandle<T> GetAtSingle<T>(Vector3Int position) where T: IDungeonEntity
         {
             return World.EntityStore.EntitiesAtOf<T>(position).Single();
@@ -126,10 +176,9 @@ namespace GridDomain.Test
             }
         }
         
-
         protected void AssertWorldMatches(string expectedMap, params object[] excludedObjects)
         {
-            var identifierMaps = WorldBuilder.EntityFactories
+            var identifierMaps = LastWorldBuildResult.FinalEntityFactories
                 .Select(x =>
                 {
                     if (x.Key.Length != 1) throw new Exception("must have single character keys");
@@ -142,7 +191,7 @@ namespace GridDomain.Test
                 .Select(x => x.Value)
                 .ToArray();
             WorldBuildString worldString = ToWorldString(
-                LastUsedBuildConfig,
+                LastWorldBuildResult.WorldBuildConfig,
                 '-',
                 identifierMaps
                 );

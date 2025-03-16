@@ -102,7 +102,7 @@ namespace Dman.GridGameTools.WorldBuilding
         public readonly TransformedGrid<string> RawArray;
         public readonly WorldBuildConfig BuildConfig;
         
-        private WorldBuildString(
+        public WorldBuildString(
             string originalCharacterMap,
             WorldBuildConfig buildConfig)
         {
