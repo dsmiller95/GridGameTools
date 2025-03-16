@@ -194,6 +194,7 @@ namespace Dman.GridGameBindings
             this.UpdateWorld(Rc.Create(newWorld), modifiedCommands);
         }
         
+        [Obsolete("Prefer to use ApplyCommandsIfEmittedEvent, and emit domain events when an entity moves.")]
         public void ApplyCommands(IEnumerable<IDungeonCommand> allCommands, [CanBeNull] EntityId onlyApplyIfMovedPosition)
         {
             if(!CanUpdateWorld()) throw new InvalidOperationException("Cannot update world while already updating");
