@@ -6,6 +6,7 @@ using Dman.GridGameTools;
 using Dman.GridGameTools.Commands;
 using Dman.GridGameTools.DataStructures;
 using Dman.GridGameTools.Entities;
+using Dman.GridGameTools.EventLog;
 using Dman.GridGameTools.Random;
 using Dman.Utilities.Logger;
 using JetBrains.Annotations;
@@ -162,6 +163,37 @@ namespace Dman.GridGameBindings
             this.UpdateWorld(Rc.Create(newWorld), modifiedCommands);
         }
     
+        public void ApplyCommandsIfEmittedEvent(IEnumerable<IDungeonCommand> allCommands, Func<IGridEvent, bool> eventPredicate)
+        {
+            if(!CanUpdateWorld()) throw new InvalidOperationException("Cannot update world while already updating");
+            
+            var eventLog = CurrentWorld.Components.TryGet<IEventLog>();
+            if (eventLog == null) Log.Error("DungeonWorldManager: no event log found world when using ApplyCommandsIfEmittedEvent. Check that the world is initialized with an event log");
+            
+            var eventCheckpoint = eventLog?.Checkpoint();
+            
+            if (logTopLevelCommands)
+            {
+                // avoid multiple enumerations
+                allCommands = allCommands.ToList();
+                LogCommands(allCommands);
+            }
+            var (newWorld, modifiedCommands) = CurrentWorld.ApplyCommandsWithModifiedCommands(allCommands);
+            
+            eventLog = newWorld.Components.TryGet<IEventLog>();
+            if (eventLog != null && eventCheckpoint is {} checkpoint)
+            {
+                var emittedEvents = eventLog.AllEventsSince(checkpoint);
+                if (!emittedEvents.Any(eventPredicate))
+                {
+                    newWorld.Dispose();
+                    return;
+                }
+            }
+        
+            this.UpdateWorld(Rc.Create(newWorld), modifiedCommands);
+        }
+        
         public void ApplyCommands(IEnumerable<IDungeonCommand> allCommands, [CanBeNull] EntityId onlyApplyIfMovedPosition)
         {
             if(!CanUpdateWorld()) throw new InvalidOperationException("Cannot update world while already updating");
