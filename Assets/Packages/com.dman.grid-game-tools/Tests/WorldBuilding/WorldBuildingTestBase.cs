@@ -102,7 +102,7 @@ namespace GridDomain.Test
 
             GetBuilder()
                 .WithSeed(seed)
-                .WithOtherFactories(otherFactories)
+                .AddOtherFactories(otherFactories)
                 .WithMap(characterMap)
                 .AddComponents(usedComponents)
                 .AddComponents(usedComponentFactories)
