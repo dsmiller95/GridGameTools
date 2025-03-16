@@ -13,7 +13,12 @@ namespace Dman.GridGameTools.WorldBuilding
     {
         private WorldBuilder() { }
 
-        public static WorldBuilder Create() => new();
+        public static WorldBuilder Create()
+        {
+            return new WorldBuilder()
+                .AddComponents(DefaultComponents.Pathing)
+                .RequiresComponent<IDungeonPathingData>();
+        }
 
         private IDefaultFactoriesFactory DefaultEntities { get; set; }
         private string DefaultChar { get; set; } = "-";
@@ -23,6 +28,7 @@ namespace Dman.GridGameTools.WorldBuilding
         private string CharacterMap { get; set; } = null;
         private IEnumerable<IWorldComponent> Components { get; set; } = Enumerable.Empty<IWorldComponent>();
         private IEnumerable<ICreateDungeonComponent> ComponentCreators { get; set; } = Enumerable.Empty<ICreateDungeonComponent>();
+        private IEnumerable<Type> RequiredComponents { get; set; } = Enumerable.Empty<Type>();
         private bool ShuffleEntities { get; set; } = false;
         
         public WorldBuilder WithDefaultEntities(IDefaultFactoriesFactory defaultEntities) =>
@@ -62,6 +68,13 @@ namespace Dman.GridGameTools.WorldBuilding
             componentCreators == null ? this : this with { ComponentCreators = ComponentCreators.Concat(componentCreators) };
         public WorldBuilder AddComponents(params ICreateDungeonComponent[] componentCreators) =>
             componentCreators == null ? this : this with { ComponentCreators = ComponentCreators.Concat(componentCreators) };
+        
+        public WorldBuilder RequiresComponents(params Type[] requiredComponents) =>
+            requiredComponents == null ? this : this with { RequiredComponents = RequiredComponents.Concat(requiredComponents) };
+        public WorldBuilder RequiresComponents(IEnumerable<Type> requiredComponents) => 
+            requiredComponents == null ? this : this with { RequiredComponents = RequiredComponents.Concat(requiredComponents) };
+        public WorldBuilder RequiresComponent<T>() => 
+            this with { RequiredComponents = RequiredComponents.Append(typeof(T)) };
         
         public WorldBuilder WithShuffleEntities(bool shuffleEntities) =>
             this with { ShuffleEntities = shuffleEntities };
@@ -119,21 +132,39 @@ namespace Dman.GridGameTools.WorldBuilding
             }
             
             var bounds = new DungeonBounds(Vector3Int.zero, characterMap.Size());
-            var pathingData = new DungeonPathingData(bounds, playerPosition: Vector3Int.zero);
-            var allComponents = Components?.ToList() ?? new List<IWorldComponent>(1);
-            allComponents.Add(pathingData);
-            
             var creationContext = new WorldComponentCreationContext { WorldBounds = bounds };
-            foreach (var creator in ComponentCreators)
-            {
-                allComponents.AddRange(creator.CreateComponents(creationContext));
-            }
+
+            var allComponents = ComponentCreators
+                .SelectMany(creator => creator.CreateComponents(creationContext))
+                .Concat(Components)
+                .ToList();
             
+            // check for required components
+            var missingComponents = GetMissingRequiredComponents(allComponents, RequiredComponents).ToList();
+            if (missingComponents.Any())
+            {
+                throw new ArgumentException($"Missing required components: {string.Join(", ", missingComponents.Select(c => c.Name))}");
+            }
             
             IDungeonWorld world = DungeonWorld.CreateEmpty(Seed, allComponents)
                 .AddEntities(allEntities).world;
 
             return new WorldBuilderPatternResult(world, entityFactories, BuildConfig);
+        }
+        
+        private static IEnumerable<Type> GetMissingRequiredComponents(
+            IEnumerable<IWorldComponent> allComponents,
+            IEnumerable<Type> requiredComponents)
+        {
+            var allComponentTypes = allComponents.Select(c => c.GetType()).ToList();
+            foreach (Type requiredComponent in requiredComponents)
+            {
+                if (allComponentTypes.Any(x => requiredComponent.IsAssignableFrom(x)))
+                {
+                    continue;
+                }
+                yield return requiredComponent;
+            }
         }
         
         private static IEnumerable<IDungeonEntity> ShuffleEntityList(IEnumerable<IDungeonEntity> entities, uint seed)
