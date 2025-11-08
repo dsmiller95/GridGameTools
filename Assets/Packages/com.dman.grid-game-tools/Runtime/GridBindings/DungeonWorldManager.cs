@@ -83,7 +83,6 @@ namespace Dman.GridGameBindings
         }
 
         public Transform EntityParent => worldParent;
-
         
         private Queue<Rc<IDungeonWorld>> _lastWorldBuffer = new Queue<Rc<IDungeonWorld>>();
         private int _lastWorldBufferCapacity = 1;
@@ -96,23 +95,12 @@ namespace Dman.GridGameBindings
             get => _lastWorldBufferCapacity;
             set
             {
-                _lastWorldBufferCapacity = Mathf.Min(1, value);
+                _lastWorldBufferCapacity = Mathf.Max(1, value);
                 while (_lastWorldBuffer.Count > _lastWorldBufferCapacity - 1)
                 {
                     _lastWorldBuffer.Dequeue().Dispose();
                 }
             }
-        }
-
-        public void SeedWith(GridRandomGen seed)
-        {
-            if (_worldRng != null)
-            {
-                Log.Error($"Seeding rng of the world, but rng has already been set. this may not be deterministic");
-            }
-
-            seed = seed.Fork(nameof(DungeonWorldManager).ToSeed());
-            _worldRng = seed;
         }
         
         private void Awake()
@@ -129,6 +117,17 @@ namespace Dman.GridGameBindings
             }
         }
 
+        public void SeedWith(GridRandomGen seed)
+        {
+            if (_worldRng != null)
+            {
+                Log.Error($"Seeding rng of the world, but rng has already been set. this may not be deterministic");
+            }
+
+            seed = seed.Fork(nameof(DungeonWorldManager).ToSeed());
+            _worldRng = seed;
+        }
+        
         /// <summary>
         /// sets the world state. must be called before Start runs on DungeonWorldManager, otherwise will fail.
         /// </summary>
@@ -137,17 +136,6 @@ namespace Dman.GridGameBindings
         {
             if(CurrentWorld != null) throw new InvalidOperationException("Cannot set initial world state after Start has run");
             SetInitialWorldState(world);
-        }
-        private void SetInitialWorldState(IDungeonWorld initialWorld)
-        {
-            if(CurrentWorld != null) throw new InvalidOperationException("Cannot set initial world state if world already exists");
-            var allPostInit = GetComponents<IPostInitDungeonWorld>();
-            foreach (IPostInitDungeonWorld postInit in allPostInit)
-            {
-                initialWorld = postInit.PostInitialize(initialWorld);
-            }
-            _currentWorld = Rc.Create(initialWorld);
-            TriggerWorldUpdated(new DungeonUpdateEvent(null, CurrentWorld));
         }
 
         public bool CanUpdateWorld()
@@ -162,7 +150,6 @@ namespace Dman.GridGameBindings
             var (newWorld, modifiedCommands) = CurrentWorld.ApplyCommandsWithModifiedCommands(commands);
             this.UpdateWorld(Rc.Create(newWorld), modifiedCommands);
         }
-        
         
         public void ApplyCommands(IEnumerable<IDungeonCommand> allCommands)
         {
@@ -231,22 +218,6 @@ namespace Dman.GridGameBindings
         
             this.UpdateWorld(Rc.Create(newWorld), modifiedCommands);
         }
-        
-    
-        private void LogCommands(IEnumerable<IDungeonCommand> commands)
-        {
-            if (logTopLevelCommands)
-            {
-                Debug.Log("DungeonWorldManager Top level Commands:\n" + string.Join("\n", commands.Select(c => c.ToString())));
-            }
-        }
-
-        private static Vector3Int? GetPositionOfEntity(IEntityStore entityStore, [CanBeNull] EntityId optionalEntity)
-        {
-            if (optionalEntity == null) return null;
-            return entityStore.GetEntity(optionalEntity)
-                ?.Coordinate.Position;
-        }
     
         public void SpawnEntitiesWithCustomHydration(IDungeonEntity[] entities, Action<IDungeonWorld, EntityId[]> rehydrate)
         {
@@ -266,9 +237,43 @@ namespace Dman.GridGameBindings
         }
 
         /// <summary>
-        /// rewind to a previous world state, if possible. Rewinding will add a new world state to the buffer, without
-        /// rewinding the buffer itself. so rewinding `1` twice is NOT equivalent to rewinding `2` once. Rewinding `1` twice
-        /// will result in the same world state as before the first rewind. 
+        /// returns a previous world state, if possible. This world will be disposed of at the discretion
+        /// of this dungeon world manger. If performing a conditional rewind, use this method to inspect the past world
+        /// and then use <see cref="RewindBack"/> to rewind to that world state.
+        /// </summary>
+        /// <remarks>
+        /// DO NOT store references to this world. It may be disposed by the <see cref="DungeonWorldManager"/> during
+        /// any subsequent world update.
+        /// </remarks>
+        /// <param name="backwardsSteps">How many steps before the current world to go back to get the past world.</param>
+        /// <returns>A previous world state if it extists. Otherwise Null.</returns>
+        [CanBeNull]
+        public IDungeonWorld GetPastWorld(int backwardsSteps)
+        {
+            if (backwardsSteps < 0)
+            {
+                throw new ArgumentException("Cannot rewind back a negative number of steps");
+            }
+            if (backwardsSteps == 0)
+            {
+                return _currentWorld.Value;
+            }
+
+            if (backwardsSteps > OldWorldBufferCapacity || backwardsSteps > OldWorldBufferSize)
+            {
+                return null;
+            }
+
+            var pastWorld = GetOldWorld(backwardsSteps);
+            return pastWorld.Value;
+        }
+        
+        /// <summary>
+        /// Rewind to a previous world state, if possible. Rewinding will consider the old world state to be
+        /// the current, new, world state. so rewinding `1` twice is NOT equivalent to rewinding `2` once.
+        /// Rewinding `1` twice will result in the same world state as before the first rewind.
+        /// In order to rewind one step twice, first rewind by one step, then rewind by 3 steps to skip over
+        /// the newly created world. then 5 steps, and so on. 
         /// </summary>
         public void RewindBack(int backwardsSteps)
         {
@@ -286,7 +291,7 @@ namespace Dman.GridGameBindings
             {
                 throw new ArgumentException("Cannot rewind back more steps than the capacity of the buffer");
             }
-            if (OldWorldBufferSize < backwardsSteps)
+            if (backwardsSteps > OldWorldBufferSize)
             {
                 throw new ArgumentException("Cannot rewind back more steps than are stored in the buffer");
             }
@@ -298,6 +303,33 @@ namespace Dman.GridGameBindings
             }
             var commands = Enumerable.Empty<IDungeonCommand>();
             this.UpdateWorld(worldToRewindTo, commands);
+        }
+        
+        private void SetInitialWorldState(IDungeonWorld initialWorld)
+        {
+            if(CurrentWorld != null) throw new InvalidOperationException("Cannot set initial world state if world already exists");
+            var allPostInit = GetComponents<IPostInitDungeonWorld>();
+            foreach (IPostInitDungeonWorld postInit in allPostInit)
+            {
+                initialWorld = postInit.PostInitialize(initialWorld);
+            }
+            _currentWorld = Rc.Create(initialWorld);
+            TriggerWorldUpdated(new DungeonUpdateEvent(null, CurrentWorld));
+        }
+    
+        private void LogCommands(IEnumerable<IDungeonCommand> commands)
+        {
+            if (logTopLevelCommands)
+            {
+                Debug.Log("DungeonWorldManager Top level Commands:\n" + string.Join("\n", commands.Select(c => c.ToString())));
+            }
+        }
+
+        private static Vector3Int? GetPositionOfEntity(IEntityStore entityStore, [CanBeNull] EntityId optionalEntity)
+        {
+            if (optionalEntity == null) return null;
+            return entityStore.GetEntity(optionalEntity)
+                ?.Coordinate.Position;
         }
     
         private void UpdateWorld(Rc<IDungeonWorld> newWorld, IEnumerable<IDungeonCommand> appliedCommands)
